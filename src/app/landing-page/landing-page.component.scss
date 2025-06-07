@@ -1,0 +1,31 @@
+@import '../../styles.scss';
+//@import '../../../node_modules/bootstrap';
+
+
+.main-header{
+    height: 65vh;
+    // background-color: $main-color;
+    background-image: url('../../assets/images/book-seminar.png');
+    background-size: cover;
+}
+
+.landing-page-contents{
+    height: 45vh;
+    background-color: $secondary-color;
+}
+
+.landing-search-container{
+    padding-top: 30px;
+    display: flex;
+    justify-content: center;
+    .landing-search{
+        font-size: 17px; 
+        width:40vw;
+        padding: 0px 10px 0px 10px;
+        height: 55px;
+        border: 2px solid gray;
+        border-radius: 25px;
+        background-color: $tertiary-color;
+    }
+}
+

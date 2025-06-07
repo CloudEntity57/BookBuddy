@@ -1,0 +1,64 @@
+//@import '../../node_modules/bootstrap';
+@import '../styles.scss';
+
+.main-navbar{
+    background-color: $main-color;
+    height: 50px;
+    position: fixed;
+    width: 100%;
+    .navbar-brand{
+        font-family: Arial, Helvetica, sans-serif;
+        color: $tertiary-color;
+        font-size: calc(1.3rem + 0.6vw);
+        text-decoration-line: none;
+    }
+}
+.navbar-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    background-color: $main-color;
+    border-bottom: 1px solid #a4a4a4;
+    .navbar-content{
+        padding: 0px 25px 0px 25px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+.search{
+    //color: #fff;
+    &:focus{
+        //color: #fff !important;
+        border: 0px !important;
+    }
+    font-size: 15px;
+    padding: 0px 10px 0px 10px;
+    border: 1px solid #a4a4a4;
+    background-color: $secondary-color;
+    max-width: 200px;
+    margin-right:20px;
+    border-radius: 25px;
+}
+.right-controls{
+    min-width: 33%;
+    display: flex;
+    justify-content: flex-start;
+}
+.vanishing{
+    position: fixed;
+    width: 100vw;
+    height: 0px;
+    transition: 250ms;
+    // animation-duration: 2000ms;
+    overflow: hidden;
+}
+.navbar-visible{
+    width: 100vw;
+    position: fixed;
+}
+.appearing{
+    height: 50px;
+    transition: 250ms;
+}
