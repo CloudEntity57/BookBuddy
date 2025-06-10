@@ -3,6 +3,18 @@
 </header>
 <div class="landing-page-contents">
     <div class="landing-search-container">
-        <input type="text" class="search landing-search form-control" placeholder="What do you want to read?">
+        <form [formGroup]="book_form">
+            <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" class="search landing-search form-control" placeholder="What do you want to read?">
+            <mat-autocomplete #auto="matAutocomplete">
+                <mat-option *ngFor="let book of bookList.items">
+                    <div class="options-container">
+                    <span class="book-thumbnail" [style.background-image]=`url(${book.volumeInfo.imageLinks?.smallThumbnail})`></span> 
+                        <div class="text-container">
+                            {{book.volumeInfo.authors + ': ' + book.volumeInfo.title}}
+                        </div>
+                    </div>
+                </mat-option>
+            </mat-autocomplete>
+        </form>
     </div>
 </div>

@@ -1,9 +1,9 @@
-import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
 import { OAuthModule } from 'angular-oauth2-oidc';
-import { AuthService } from './auth/auth.service';
+import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 
 
@@ -23,12 +23,25 @@ export class AppComponent implements OnInit{
   }
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
+  public userIconURL = null;
 
   ngOnInit(): void {
-    if(this.authService.isLoggedIn){
-      this.isLoggedIn = true;
-      this.changeDetector.detectChanges();
-    }
+    this.authService.$isLoggedIn.subscribe((loggedIn)=>{
+      if(loggedIn === true){
+        this.isLoggedIn = true;
+        this.changeDetector.detectChanges();
+        // populate the user icon 
+        this.authService.initUserInfo().then(res => {
+          this.userIconURL = this.authService.userProfile.info.picture;
+          console.log('user icon url: ', this.userIconURL)
+          this.changeDetector.detectChanges();
+        })
+      }
+      if(loggedIn  === false){
+        this.isLoggedIn = false;
+        this.changeDetector.detectChanges();
+      }
+    });
     if(this.window) window?.addEventListener('scroll', ()=>{
       if(window?.scrollY > 15){
         document.querySelector('nav')?.setAttribute('class','main-navbar vanishing');
@@ -46,10 +59,9 @@ export class AppComponent implements OnInit{
     })
   }
 
-  public checklogin(){
-    console.log(this.authService.isLoggedIn)
-
-  }
+  // public checklogin(){
+  //   this.authService.isLoggedIn;
+  // }
   
 
   public login(){

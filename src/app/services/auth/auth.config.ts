@@ -1,4 +1,4 @@
-import { environment } from "../../environments/environment";
+import { environment } from "../../../environments/environment";
 import { AuthConfig } from 'angular-oauth2-oidc';
 
 export const googleAuthConfig: AuthConfig = {
@@ -10,8 +10,13 @@ export const googleAuthConfig: AuthConfig = {
     // The first four are defined by OIDC.
     // Important: Request offline_access to get a refresh token
     // The api scope is a usecase specific one
-    dummyClientSecret: 'secret',
-    scope: 'openid profile email',
+    // dummyClientSecret: 'secret',
+    scope: 'openid profile email https://www.googleapis.com/auth/userinfo.profile',
     responseType: 'code',
-    showDebugInformation: true
+    showDebugInformation: true,
+    // useHttpBasicAuth: false,
+    customQueryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+    }
 }
