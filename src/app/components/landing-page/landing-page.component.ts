@@ -1,12 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { HttpClient } from '@angular/common/http';
-import { BookService } from '../services/books/book.service';
+import { BookService } from '../../services/books/book.service';
+import { GoogleBookInfo, GoogleBookResults } from '../../interfaces/book.interface';
+import { Router } from '@angular/router';
+import { BaseBook } from '../base-book';
 
 
 @Component({
@@ -15,9 +18,9 @@ import { BookService } from '../services/books/book.service';
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.scss'
 })
-export class LandingPageComponent implements OnInit, AfterViewInit, OnDestroy{
-  constructor(private bookService: BookService, private changeDetector: ChangeDetectorRef ){
-
+export class LandingPageComponent extends BaseBook<GoogleBookInfo> implements OnInit, OnDestroy{
+  constructor(private bookService: BookService, router: Router, private changeDetector: ChangeDetectorRef ){
+    super(router)
   }
 
   http = inject(HttpClient);
@@ -28,7 +31,6 @@ export class LandingPageComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public book_form!: FormGroup;
 
-  public bookList: any = [];
 
 
   ngOnInit(): void {
@@ -37,10 +39,9 @@ export class LandingPageComponent implements OnInit, AfterViewInit, OnDestroy{
     })
     const bookSearchControl = this.book_form.get('book_search') as FormControl;
         this.subscriptions.push(bookSearchControl.valueChanges.subscribe(val => {
-          // console.log(`val: ${val}`)
-          if(val.length > 3){
+          if(val && val.length > 3){
             this.subscriptions.push(this.bookService.bookSearch(val).subscribe(res => {
-              // console.log(`http res: ${res}`)
+              console.log('RES:',res)
               this.bookList = res;
               this.changeDetector.detectChanges();
             }
@@ -50,9 +51,6 @@ export class LandingPageComponent implements OnInit, AfterViewInit, OnDestroy{
         }));
   }
 
-  ngAfterViewInit(): void {
-  }
-
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
@@ -60,5 +58,8 @@ export class LandingPageComponent implements OnInit, AfterViewInit, OnDestroy{
   public searchKeystroke(event: any){
     console.log(`event: ${event}`)
   }
+
+
+
 
 }

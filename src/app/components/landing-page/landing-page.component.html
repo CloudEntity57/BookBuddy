@@ -6,9 +6,9 @@
         <form [formGroup]="book_form">
             <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" class="search landing-search form-control" placeholder="What do you want to read?">
             <mat-autocomplete #auto="matAutocomplete">
-                <mat-option *ngFor="let book of bookList.items">
+                <mat-option *ngFor="let book of bookList" (onSelectionChange)="goToBookPage(book)">
                     <div class="options-container">
-                    <span class="book-thumbnail" [style.background-image]=`url(${book.volumeInfo.imageLinks?.smallThumbnail})`></span> 
+                    <span class="book-thumbnail" [style.background-image]=`url(${book.volumeInfo.imageLinks.smallThumbnail})`></span> 
                         <div class="text-container">
                             {{book.volumeInfo.authors + ': ' + book.volumeInfo.title}}
                         </div>

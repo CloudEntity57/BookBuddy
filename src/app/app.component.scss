@@ -1,10 +1,19 @@
-//@import '../../node_modules/bootstrap';
-@import '../styles.scss';
+@use '../styles.scss' as styles;
 
+$navbar-height: 60px;
+main{
+    background-color: styles.$secondary-color;
+    padding-top: $navbar-height;
+    min-height: 120vh;
+}
+.container{
+    margin: 0vw 10vw 0vw 10vw;
+}
 .main-navbar{
-    background-color: $main-color;
-    height: 60px;
+    background-color: styles.$main-color;
+    height: $navbar-height;
     position: fixed;
+    top: 0px;
     width: 100%;
     .brand-container{
         display: flex;
@@ -13,21 +22,24 @@
         .navbar-brand{
             // line-height: 2;
             font-family: Arial, Helvetica, sans-serif;
-            color: $tertiary-color;
+            color: styles.$tertiary-color;
             font-size: calc(1.3rem + 0.6vw);
             text-decoration-line: none;
         }
     }
 }
+// .navbar-buffer{
+//     height: $navbar-height;
+// }
 .navbar-container{
     display: flex;
     flex-direction: column;
     justify-content: center;
     height: 100%;
-    background-color: $main-color;
+    background-color: styles.$main-color;
     border-bottom: 1px solid #a4a4a4;
     .navbar-content{
-        padding: 0px 25px 0px 25px;
+        // padding: 0px 25px 0px 25px;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -52,7 +64,7 @@
     font-size: 15px;
     padding: 0px 10px 0px 10px;
     border: 1px solid #a4a4a4;
-    background-color: $secondary-color;
+    background-color: styles.$secondary-color;
     max-width: 200px;
     margin-right:20px;
     border-radius: 25px;
@@ -75,6 +87,9 @@
     position: fixed;
 }
 .appearing{
-    height: 50px;
+    height: $navbar-height;
     transition: 250ms;
+}
+.full-appear{
+    height: $navbar-height;
 }

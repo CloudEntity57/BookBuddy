@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
+import { fromEvent, throttleTime } from 'rxjs';
 
 
 @Component({
@@ -21,6 +22,7 @@ import { CommonModule } from '@angular/common';
 export class AppComponent implements OnInit{
   constructor(@Inject(WINDOW) private window: Window, private authService: AuthService, private changeDetector: ChangeDetectorRef){
   }
+  private lastScrollTop = 0;
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
   public userIconURL = null;
@@ -42,20 +44,24 @@ export class AppComponent implements OnInit{
         this.changeDetector.detectChanges();
       }
     });
-    if(this.window) window?.addEventListener('scroll', ()=>{
-      if(window?.scrollY > 15){
-        document.querySelector('nav')?.setAttribute('class','main-navbar vanishing');
-        this.changeDetector.detectChanges();
-      }
-    });
-    if(this.window) window?.addEventListener('scrollend',()=>{
-      if(window?.scrollY === 0){
-        document.querySelector('nav')?.setAttribute('class', 'main-navbar appearing');
+    fromEvent(window, 'scroll').pipe(throttleTime(90)).subscribe(()=>{
+      console.log('scrollevent')
+      const currentScroll = document.documentElement.scrollTop;
+      if(currentScroll > this.lastScrollTop){
+        document.querySelector('.main-navbar')?.setAttribute('class','main-navbar vanishing');
         this.changeDetector.detectChanges();
       }else{
-        document.querySelector('nav')?.setAttribute('class', 'main-navbar navbar-visible appearing');
+        document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       }
+      this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    });
+    fromEvent(window,'scrollend').subscribe(()=>{
+      console.log('scrollend')
+        const currentScroll = document.documentElement.scrollTop;
+        document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
+        this.changeDetector.detectChanges();
+      
     })
   }
 
