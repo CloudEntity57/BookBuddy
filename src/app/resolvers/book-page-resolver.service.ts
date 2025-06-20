@@ -2,20 +2,22 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
 import { BookService } from '../services/books/book.service';
-import { GoogleBookInfo } from '../interfaces/book.interface';
+import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../interfaces/book.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class BookPageResolver implements Resolve<GoogleBookInfo> {
+export class BookPageResolver implements Resolve<OpenLibraryWorkInfo | GoogleBookInfo> {
 
   constructor(private bookService: BookService) { }
 
   resolve(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot,
-  ): Observable<GoogleBookInfo>{
+  ): Observable<OpenLibraryWorkInfo | GoogleBookInfo>{
     const bookId = route.queryParams['id'];
-    return this.bookService.getBookById(bookId!);
+    console.log('BOOK ID = ',bookId)
+    return this.bookService.getBookById(bookId!, environment.books.bookByIdApi);
   }
 }

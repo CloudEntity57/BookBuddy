@@ -1,6 +1,7 @@
 @use '../styles.scss' as styles;
 
 $navbar-height: 60px;
+$right-controls-spacing: 15px;
 main{
     background-color: styles.$secondary-color;
     padding-top: $navbar-height;
@@ -13,6 +14,7 @@ main{
     background-color: styles.$main-color;
     height: $navbar-height;
     position: fixed;
+    z-index: 2;
     top: 0px;
     width: 100%;
     .brand-container{
@@ -23,6 +25,7 @@ main{
             // line-height: 2;
             font-family: Arial, Helvetica, sans-serif;
             color: styles.$tertiary-color;
+            // color: #fff;
             font-size: calc(1.3rem + 0.6vw);
             text-decoration-line: none;
         }
@@ -49,12 +52,10 @@ main{
     width: 40px;
     height: 40px;
     border-radius: 25px;
-    // margin-left: 10px;
+    margin-left: $right-controls-spacing;
     background-size: cover;
 }
-.login{
-    margin-right: 20px;
-}
+
 .search{
     //color: #fff;
     &:focus{
@@ -64,15 +65,15 @@ main{
     font-size: 15px;
     padding: 0px 10px 0px 10px;
     border: 1px solid #a4a4a4;
-    background-color: styles.$secondary-color;
+    background-color: styles.$tertiary-color;
     max-width: 200px;
-    margin-right:20px;
+    margin-right:$right-controls-spacing;
     border-radius: 25px;
 }
 .right-controls{
     min-width: 33%;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 .vanishing{
     position: fixed;

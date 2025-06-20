@@ -20,7 +20,7 @@ import { fromEvent, throttleTime } from 'rxjs';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit{
-  constructor(@Inject(WINDOW) private window: Window, private authService: AuthService, private changeDetector: ChangeDetectorRef){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef){
   }
   private lastScrollTop = 0;
   title = 'bookbuddy';

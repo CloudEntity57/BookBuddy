@@ -1,32 +1,49 @@
 import { Router } from "@angular/router"
-import { GoogleBookInfo } from "../interfaces/book.interface";
+import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo } from "../interfaces/book.interface";
 import { ChangeDetectorRef } from "@angular/core";
+import { environment } from "../../environments/environment";
 
-export abstract class BaseBook<T extends GoogleBookInfo>{
+export abstract class BaseBook{
     constructor(private router: Router){
 
     }
-    public bookList: Array<GoogleBookInfo> = [];
-    public book!: T;
-    public author?: Array<string> = this.book?.volumeInfo.authors;
-    public title?: string = this.book?.volumeInfo.title;
-    public get smallImageLink(){ return this.book.volumeInfo.imageLinks.small};
-    public get mediumImageLink(){ return this.book.volumeInfo.imageLinks.medium};
-    public get smallThumbnail(){ return this.book.volumeInfo.imageLinks.smallThumbnail };
-    public get thumbnail() { return this.book.volumeInfo.imageLinks.thumbnail }
 
-    public goToBookPage(book: T){
-        this.defineBookVariables(book);
+    /** Multiple API type configuration */
+
+    public bookList: Array<OpenLibraryBookSearchInfo | GoogleBookInfo> = [];
+    public book!: GoogleBookInfo;
+    public work!: OpenLibraryWorkInfo;
+
+
+    public goToBookPage(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
         this.router.navigate(['/book'],{
             queryParams:{
-                id: book.id
+                id: book.source === 'google' ? book.selfLink : book.key
             }
         });
     } 
 
-    public defineBookVariables(book: T){
-        this.author = book.volumeInfo.authors;
-        this.title = book.volumeInfo.title;
+    public bookPhotoUrl(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
+
+        /** OPEN LIBRARY  */
+            // return `url(${book.volumeInfo?.imageLinks?.smallThumbnail}), url('/assets/images/generic_cover.png')`;
+            let urlBase;
+            let bookPhotoUrl;
+        if(book.source === 'openLibrary'){
+            urlBase = book.cover_i;
+            if(!urlBase) return "url('assets/images/generic_cover.png')";
+            bookPhotoUrl = `url(${environment.books.openLibraryCoverApi+urlBase}-S.jpg)`;
+        }
+        if(book.source === 'google'){
+            urlBase = book.volumeInfo?.imageLinks?.smallThumbnail;
+            if(!urlBase) return "url('assets/images/generic_cover.png')";
+            bookPhotoUrl = `url(${urlBase})`;
+        }
+
+        // console.log('photo url: ', bookPhotoUrl);
+        return bookPhotoUrl;
     }
+
+
 
 }

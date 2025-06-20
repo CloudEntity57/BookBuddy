@@ -1,6 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
 $main-color: #712cf9;
+$dark-main-color: #501eb4;
 $secondary-color: #c2a8f8;
-$tertiary-color: #fcffdf;
+$tertiary-color: #f6fac8;
+// $action-color: #f8ac49;
+$action-color: rgb(246, 194, 116);
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.action-button{
+    background-color: $action-color;
+    color: #000;
+}

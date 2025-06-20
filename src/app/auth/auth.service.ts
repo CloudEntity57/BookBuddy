@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { BehaviorSubject } from 'rxjs';
-import { googleAuthConfig } from './auth.config';
+import { googleAuthConfig } from '../services/auth/auth.config';
 
 @Injectable({
   providedIn: 'root'
@@ -42,15 +42,25 @@ export class AuthService {
       if(e.type === 'logout'){
         this.$isLoggedIn.next(false);
       }
+      if(e.type == 'token_expires' || e.type == 'user_profile_load_error'){
+        console.log('token expired, logging out')
+        this.$isLoggedIn.next(false);
+      }
     })
   }
 
 
   public async initUserInfo(){
-     await this.oAuthService.loadUserProfile().then((userProfile: object) => {
-      console.log('User Profile:', userProfile);
-      this.userProfile = userProfile;
-    });
+    try{
+      await this.oAuthService.loadUserProfile().then((userProfile: object) => {
+        console.log('User Profile:', userProfile);
+        this.userProfile = userProfile;
+      });
+    }catch(err){
+      console.log('ERROR loading user profile: ', err);
+      this.$isLoggedIn.next(false);
+    }
+
   }
 
   // get isLoggedIn(): boolean {

@@ -1,5 +1,17 @@
 <div class="container">
-    <h2>{{book.volumeInfo.title}}</h2>
-    <img class="book-image" src={{smallThumbnail}} alt={{smallImageLink}}>
-    <div class="book-description" [innerHTML]="book.volumeInfo.description"></div>
+    <div class="book-columns">
+        <div class="book-info">
+            <div class="book-title">{{title}} {{'('+ (date | date:'yyyy')+')'}}</div>
+            <h3>{{authorEnglish()}}</h3>
+            <!-- <img class="book-image" src={{smallThumbnail}}> -->
+            <img class="book-image" src={{thumbnail}}>
+        </div>
+        <div class="action-to-read">
+            <button class="action-button" mat-raised-button>I Want To Read This</button>
+        </div>
+        <div class="want-to-read">
+            These people want to read <b>{{title}}</b>
+        </div>
+    </div>
+    <div class="book-description" [innerHTML]="description || 'no description available'"></div>
 </div>

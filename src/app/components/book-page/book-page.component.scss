@@ -1,7 +1,25 @@
 @use '../../app.component.scss';
+@use '../../../styles.scss';
+
+.book-columns{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.book-title{
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.want-to-read{
+    max-width: 25vw;
+}
 
 .book-image{
     width: 20vw;
+    margin-bottom: 20px;
 }
 
 .book-description{
