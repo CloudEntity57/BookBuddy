@@ -2,11 +2,11 @@
 
 </header>
 <div class="landing-page-contents">
-    <div class="landing-search-container">
-        <form [formGroup]="book_form">
+    <!-- <div class="landing-search-container"> -->
+        <app-book-dropdown-option dropdown_type="landing-search"></app-book-dropdown-option>
+        <!-- <form [formGroup]="book_form">
             <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" class="search landing-search form-control" placeholder="What do you want to read?">
             <mat-autocomplete #auto="matAutocomplete">
-                <!-- <app-book-dropdown-option [books_input]="bookList"></app-book-dropdown-option> -->
                 <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="goToBookPage(book_option)">
                     <div class="options-container">
                         <ng-container *ngIf="book_option.source === 'google'">
@@ -26,6 +26,6 @@
                     </div>
                 </mat-option>
             </mat-autocomplete>
-        </form>
-    </div>
+        </form> -->
+    <!-- </div> -->
 </div>

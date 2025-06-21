@@ -6,7 +6,8 @@
         <a href="#" class="navbar-brand">BookBuddy</a>
       </span>
         <div class="right-controls">
-            <input type="text" class="search form-control" placeholder="Search">
+            <!-- <input type="text" class="search form-control" placeholder="Search"> -->
+             <app-book-dropdown-option dropdown_type="navbar-search" dropdown_text="Search"></app-book-dropdown-option>
             <button *ngIf="!isLoggedIn" (click)="login()" mat-raised-button class="login">Log In</button>
             <button *ngIf="isLoggedIn" (click)="logout()" mat-raised-button class="login">Log Out</button>
             <!-- <button (click)="checklogin()" mat-raised-button>Check</button> -->

@@ -6,16 +6,15 @@ import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { fromEvent, throttleTime } from 'rxjs';
+import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 
 
 @Component({
   selector: 'app-root',
-  imports: 
-  [ RouterOutlet, 
+  imports: [RouterOutlet,
     MatButtonModule,
     OAuthModule,
-    CommonModule
-  ],
+    CommonModule, BookDropdownOptionComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

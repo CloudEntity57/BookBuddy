@@ -2,6 +2,7 @@ import { Router } from "@angular/router"
 import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo } from "../interfaces/book.interface";
 import { ChangeDetectorRef } from "@angular/core";
 import { environment } from "../../environments/environment";
+import { FormGroup } from "@angular/forms";
 
 export abstract class BaseBook{
     constructor(private router: Router){
@@ -16,6 +17,7 @@ export abstract class BaseBook{
 
 
     public goToBookPage(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
+        
         this.router.navigate(['/book'],{
             queryParams:{
                 id: book.source === 'google' ? book.selfLink : book.key
