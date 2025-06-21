@@ -17,12 +17,16 @@ export abstract class BaseBook{
 
 
     public goToBookPage(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
-        
-        this.router.navigate(['/book'],{
-            queryParams:{
-                id: book.source === 'google' ? book.selfLink : book.key
-            }
-        });
+        try{
+            this.router.navigate(['/book'],{
+                queryParams:{
+                    id: book.source === 'google' ? book.selfLink : book.key
+                }
+            });        
+        }catch (err){
+            console.log('ERROR NAVIGATING - ', err)
+        }
+
     } 
 
     public bookPhotoUrl(book: OpenLibraryBookSearchInfo | GoogleBookInfo){

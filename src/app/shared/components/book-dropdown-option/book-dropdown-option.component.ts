@@ -50,7 +50,7 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
         if(!val) this.bookList = [];
         this.changeDetector.detectChanges();
       }),
-      filter(term => term.length >= 3),
+      filter(term => term?.length >= 3),
       distinctUntilChanged(),
       switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
     ).subscribe(val => {

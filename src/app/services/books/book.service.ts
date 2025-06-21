@@ -21,8 +21,10 @@ export class BookService {
     /* For Google Books API: **/
     if(api_type === "google"){
       return this.http.get<GoogleBookSearchResults>(`${environment.books.googleBookSearchApi}intitle:${val}`).pipe(
-        map(res => res?.items?.map(a => {a.source = "google"; return a;}))
-      ) as Observable<Array<GoogleBookInfo | OpenLibraryBookSearchInfo>>;
+        map(res => res?.items?.map(a => {
+          a.source = "google"; return a;
+        }))
+      ) as Observable<Array<GoogleBookInfo>>;
     }
   
 
@@ -41,12 +43,23 @@ export class BookService {
   public getBookById(id: string, api_type: string): Observable<GoogleBookInfo | OpenLibraryWorkInfo>{
     /** GOOGLE */
       if(api_type === "google") {
-        return this.http.get(`${id}`) as Observable<GoogleBookInfo>;
+        return this.http.get<GoogleBookInfo>(`${id}`).pipe(
+        map(a => {
+          a.source = "google"; 
+          console.log(`a: ${a}`)
+          return a;
+        })
+      );
       }
     /** OPEN LIBRARY */
       if(api_type === "openLibrary"){
         const headers = new HttpHeaders({'User-Agent':'bookbuddy/1.0 by josh foster, 713-822-8407, josh@allenb.com'})
-        return this.http.get(`${environment.books.openLibraryWorksApi}${id}.json`,{ headers }) as Observable<OpenLibraryWorkInfo>;
+        return this.http.get<OpenLibraryWorkInfo>(`${environment.books.openLibraryWorksApi}${id}.json`,{ headers }).pipe(
+          map(a => {
+            a.source = "openLibrary"; 
+            console.log(`a: ${a}`)
+            return a;
+          }))
       }
       return of();
   }
