@@ -10,3 +10,29 @@
         </div>
     </mat-option>
 </mat-autocomplete> -->
+<div class="landing-search-container">
+        <form [formGroup]="book_form">
+            <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" [class]= "dropdown_type" class="search form-control"  placeholder={{dropdown_text}}>
+            <mat-autocomplete #auto="matAutocomplete">
+                <!-- <app-book-dropdown-option [books_input]="bookList"></app-book-dropdown-option> -->
+                <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="goToBookPage(book_option)">
+                    <div class="options-container">
+                        <ng-container *ngIf="book_option.source === 'google'">
+                                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+
+                            <div class="text-container">
+                                {{book_option.volumeInfo?.authors + ': ' + book_option.volumeInfo?.title}}
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="book_option.source === 'openLibrary'">
+                                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+
+                            <div class="text-container">
+                                {{book_option.author_name + ': ' + book_option.title}}
+                            </div>
+                        </ng-container>
+                    </div>
+                </mat-option>
+            </mat-autocomplete>
+        </form>
+</div>
