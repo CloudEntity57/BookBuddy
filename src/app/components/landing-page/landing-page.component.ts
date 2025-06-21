@@ -44,23 +44,23 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
     this.listenForSearchChanges();
   }
 
-  // public listenForSearchChanges(): void{
-  //   const bookSearchControl = this.book_form.get('book_search') as FormControl;
-  //   this.subscriptions.push(bookSearchControl.valueChanges.pipe(
-  //     debounceTime(150),
-  //     tap(val => {
-  //       if(!val) this.bookList = [];
-  //       this.changeDetector.detectChanges();
-  //     }),
-  //     filter(term => term.length >= 3),
-  //     distinctUntilChanged(),
-  //     switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
-  //   ).subscribe(val => {
-  //     this.bookList = val;
-  //     console.log('booklist: ', this.bookList)
-  //     this.changeDetector.detectChanges();
-  //   }));  
-  // }
+  public listenForSearchChanges(): void{
+    const bookSearchControl = this.book_form.get('book_search') as FormControl;
+    this.subscriptions.push(bookSearchControl.valueChanges.pipe(
+      debounceTime(150),
+      tap(val => {
+        if(!val) this.bookList = [];
+        this.changeDetector.detectChanges();
+      }),
+      filter(term => term.length >= 3),
+      distinctUntilChanged(),
+      switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
+    ).subscribe(val => {
+      this.bookList = val;
+      console.log('booklist: ', this.bookList)
+      this.changeDetector.detectChanges();
+    }));  
+  }
 
   // public bookUrls(book: any):string{
   //   /** GOOGLE BOOK URLS */

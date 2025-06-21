@@ -57,6 +57,16 @@ export class BookPageComponent implements OnInit{
 
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      console.log('NEW PARAMS - ', params)
+      const bookId = params['id'];
+      console.log('BOOK ID = ',bookId)
+      this.bookService.getBookById(bookId!, environment.books.bookByIdApi).subscribe(book => {
+            if(this.api_type === "google" && book.source === "google") this.book = book;
+            else if(this.api_type === "openLibrary" && book.source === "openLibrary") this.work = book;
+            this.changeDetector.detectChanges();
+      });
+    });
     if(this.api_type === "google") this.book = this.route.snapshot.data['book'];
     else this.work = this.route.snapshot.data['book'];
     console.log('BOOK: ',this.book);
