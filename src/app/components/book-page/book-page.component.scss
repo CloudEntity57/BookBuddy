@@ -1,6 +1,10 @@
 @use '../../app.component.scss';
 @use '../../../styles.scss';
 
+.book-info{
+    max-width: 30vw;
+}
+
 .book-columns{
     display: flex;
     justify-content: space-between;
