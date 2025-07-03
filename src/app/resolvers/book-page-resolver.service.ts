@@ -18,6 +18,6 @@ export class BookPageResolver implements Resolve<OpenLibraryWorkInfo | GoogleBoo
   ): Observable<OpenLibraryWorkInfo | GoogleBookInfo>{
     const bookId = route.queryParams['id'];
     console.log('BOOK ID = ',bookId)
-    return this.bookService.getBookById(bookId!, environment.books.bookByIdApi);
+    return this.bookService.getAPIBookById(bookId!, environment.books.bookByIdApi);
   }
 }

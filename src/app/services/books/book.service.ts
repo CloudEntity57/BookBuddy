@@ -40,7 +40,7 @@ export class BookService {
 
   }
 
-  public getBookById(id: string, api_type: string): Observable<GoogleBookInfo | OpenLibraryWorkInfo>{
+  public getAPIBookById(id: string, api_type: string): Observable<GoogleBookInfo | OpenLibraryWorkInfo>{
     /** GOOGLE */
       if(api_type === "google") {
         return this.http.get<GoogleBookInfo>(`${id}`).pipe(
@@ -62,6 +62,10 @@ export class BookService {
           }))
       }
       return of();
+  }
+
+  public getBookByAuthorAndTitle(author: string, title: string) : Observable<any>{
+    return this.http.get(`${environment.apiUrl}/Book/${author}/${title}`) as Observable<any>;
   }
 
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{

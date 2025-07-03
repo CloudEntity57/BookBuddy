@@ -57,13 +57,18 @@ export class BookPageComponent implements OnInit{
 
 
   ngOnInit(): void {
+
     this.route.queryParams.subscribe(params => {
       console.log('NEW PARAMS - ', params)
       const bookId = params['id'];
       console.log('BOOK ID = ',bookId)
-      this.bookService.getBookById(bookId!, environment.books.bookByIdApi).subscribe(book => {
+      this.bookService.getAPIBookById(bookId!, environment.books.bookByIdApi).subscribe(book => {
             if(this.api_type === "google" && book.source === "google") this.book = book;
             else if(this.api_type === "openLibrary" && book.source === "openLibrary") this.work = book;
+                // query against author/title to see if book exists as a work in DB
+            this.bookService.getBookByAuthorAndTitle(this.book.volumeInfo?.authors[0],this.book.volumeInfo?.title).subscribe(res => {
+              console.log(`res: ${res}`)
+            })
             this.changeDetector.detectChanges();
       });
     });

@@ -1,9 +1,11 @@
+import { BookBuddyUser } from "./user.interface";
+
 export interface GoogleBookInfo {
     source: "google",
     id: string,
     kind?: string,
     selfLink?: string,
-    volumeInfo?: {
+    volumeInfo: {
         imageLinks?: {
             smallThumbnail?: string;
             thumbnail?: string;
@@ -71,4 +73,11 @@ export interface OpenLibraryBookResults {
     source: "openLibrary",
     docs: Array<OpenLibraryBookSearchInfo>,
     numFound: number
+}
+
+export interface DatabaseBook {
+    id: string,
+    author: string,
+    title: string,
+    usersWantToRead: Array<BookBuddyUser>
 }

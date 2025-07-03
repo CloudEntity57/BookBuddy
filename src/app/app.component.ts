@@ -31,11 +31,13 @@ export class AppComponent implements OnInit{
       if(loggedIn === true){
         this.isLoggedIn = true;
         this.changeDetector.detectChanges();
-        // populate the user icon 
         this.authService.initUserInfo().then(res => {
+          // populate the user icon 
           this.userIconURL = this.authService.userProfile.info.picture;
           console.log('user icon url: ', this.userIconURL)
           this.changeDetector.detectChanges();
+          // check if user exists in DB
+          
         })
       }
       if(loggedIn  === false){

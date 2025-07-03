@@ -6,7 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, Subscription, switchMap, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, Subscription, switchMap, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { BookService } from '../../../services/books/book.service';
 import { CommonModule } from '@angular/common';
@@ -53,7 +53,33 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
       filter(term => term?.length >= 3),
       distinctUntilChanged(),
       switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
-    ).subscribe(val => {
+    ).pipe(
+      map(val => val.filter(book => {
+        const source = book.source;
+        let output = false;
+        switch(source){
+          case "google":
+            output = book.volumeInfo !== undefined
+            && book.volumeInfo.authors !== undefined 
+            && book.volumeInfo?.description !== undefined
+            && book.volumeInfo?.imageLinks !== undefined;
+            break;
+          case "openLibrary":
+            output = true;
+            break;
+          default:
+            output = true;
+        }
+        return output;
+        // return book.source === 'google' ? 
+        // // filter out google books API 'duds'
+        //   book.volumeInfo?.authors !== undefined 
+        //   && book.volumeInfo?.description !== undefined
+        //   && book.volumeInfo?.imageLinks !== undefined
+        // : true
+      } ))
+    )
+    .subscribe(val => {
       this.bookList = val;
       console.log('booklist: ', this.bookList)
       this.changeDetector.detectChanges();
