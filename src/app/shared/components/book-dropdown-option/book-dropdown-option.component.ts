@@ -1,15 +1,15 @@
 import { ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { OpenLibraryBookResults, OpenLibraryBookSearchInfo } from '../../../interfaces/book.interface';
-import { BaseBook } from '../../../components/base-book';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, Subscription, switchMap, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { BookService } from '../../../services/books/book.service';
 import { CommonModule } from '@angular/common';
+import { BaseBook } from '../base-book/base-book';
 
 @Component({
   selector: 'app-book-dropdown-option',
@@ -54,7 +54,11 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
       distinctUntilChanged(),
       switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
     ).pipe(
-      map(val => val.filter(book => {
+      catchError(error => {
+        console.log('error: ', error);
+        throw(error)}
+      ),
+      map(val => val?.filter(book => {
         const source = book.source;
         let output = false;
         switch(source){

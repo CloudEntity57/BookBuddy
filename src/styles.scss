@@ -5,10 +5,12 @@ $secondary-color: #c2a8f8;
 $tertiary-color: #f6fac8;
 // $action-color: #f8ac49;
 $action-color: rgb(246, 194, 116);
+$secondary-action-color: rgb(223, 198, 161);
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .action-button{
-    background-color: $action-color;
+    background-color: $action-color !important;
     color: #000;
 }

@@ -24,20 +24,21 @@ export class AppComponent implements OnInit{
   private lastScrollTop = 0;
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
-  public userIconURL = null;
+  public userIconURL?: string;
 
   ngOnInit(): void {
     this.authService.$isLoggedIn.subscribe((loggedIn)=>{
       if(loggedIn === true){
         this.isLoggedIn = true;
         this.changeDetector.detectChanges();
-        this.authService.initUserInfo().then(res => {
-          // populate the user icon 
-          this.userIconURL = this.authService.userProfile.info.picture;
-          console.log('user icon url: ', this.userIconURL)
-          this.changeDetector.detectChanges();
-          // check if user exists in DB
-          
+        this.authService.initUserInfo().then(() => {
+          this.authService.userInfo.subscribe(userInfo => {
+            console.log('on init db profile: ', userInfo);
+            // populate the user icon 
+            this.userIconURL = userInfo.avatarUrl;
+            console.log('user icon url: ', this.userIconURL)
+            this.changeDetector.detectChanges();
+          })
         })
       }
       if(loggedIn  === false){

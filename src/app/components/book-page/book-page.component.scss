@@ -21,6 +21,14 @@
     max-width: 25vw;
 }
 
+.want-to-read-header{
+    margin-bottom: 5px;
+}
+
+.no-users-found{
+    margin: 10px 0px 10px 0px;
+}
+
 .book-image{
     width: 20vw;
     margin-bottom: 20px;
@@ -28,4 +36,49 @@
 
 .book-description{
     margin-top: 10px;
+    padding-bottom: 50px;
+}
+
+$user-height: 50px;
+$transition-speed: .75s;
+$expanded-height: 63px;
+
+.user-want-to-read{
+    display: flex;
+    margin-top: 4px;
+    padding: 4px;
+    border: 1px solid styles.$secondary-color;
+    height: $user-height;
+    border-radius: 50px;
+    &:hover{
+        // background-color: styles.$secondary-action-color;
+        cursor: pointer;
+        height: $expanded-height;
+        // border: 1px solid #353535;
+        width: 300px;
+        .user-avatar{
+            width: $expanded-height;
+            height: $expanded-height;
+            transition: width .6s;
+        }
+        transition: all .6s;
+
+    }
+}
+
+.user-avatar{
+    border-radius: 50%;
+    // height:$user-height;
+    height: auto;
+    width: $user-height;
+    background-size: cover;
+}
+
+.user-name{
+    font-weight: bold;
+    margin-left: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }

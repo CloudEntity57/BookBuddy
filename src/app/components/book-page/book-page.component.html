@@ -1,16 +1,24 @@
 <div class="container">
     <div class="book-columns">
         <div class="book-info">
-            <div class="book-title">{{title}} {{'('+ (date | date:'yyyy')+')'}}</div>
-            <h3>{{authorEnglish()}}</h3>
+            <div class="book-title">{{title}} </div>
+            <h3>{{authorEnglish()}} {{'('+ (date | date:'yyyy')+')'}}</h3>
             <!-- <img class="book-image" src={{smallThumbnail}}> -->
             <img class="book-image" src={{thumbnail}}>
         </div>
         <div class="action-to-read">
-            <button class="action-button" mat-raised-button>I Want To Read This</button>
+            <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button" mat-raised-button>I Want To Read This</button>
+            <button *ngIf="userWantsToRead" (click)="wantToRead(false)" class="action-button" mat-raised-button>I No Longer Want To Read This</button>
         </div>
         <div class="want-to-read">
-            These people want to read <b>{{title}}</b>
+            <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
+            <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">No users found. Invite someone!</div>
+            <div class="want-to-read-header">Read <b>{{title}}</b> with <b>AI BookBuddies:</b></div>
+
+            <div class="user-want-to-read" *ngFor="let user of wantToReadAIAgents">
+                <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
+                <span class="user-name">{{user?.userName}}</span>
+            </div>
         </div>
     </div>
     <div class="book-description" [innerHTML]="description || 'no description available'"></div>

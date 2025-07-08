@@ -9,9 +9,9 @@ import { HttpClient } from '@angular/common/http';
 import { BookService } from '../../services/books/book.service';
 import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo } from '../../interfaces/book.interface';
 import { Router } from '@angular/router';
-import { BaseBook } from '../base-book';
 import { BookDropdownOptionComponent } from "../../shared/components/book-dropdown-option/book-dropdown-option.component";
 import { environment } from '../../../environments/environment';
+import { BaseBook } from '../../shared/components/base-book/base-book';
 
 
 @Component({

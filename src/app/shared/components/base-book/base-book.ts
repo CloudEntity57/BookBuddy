@@ -1,8 +1,9 @@
 import { Router } from "@angular/router"
-import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo } from "../interfaces/book.interface";
+
 import { ChangeDetectorRef } from "@angular/core";
-import { environment } from "../../environments/environment";
 import { FormGroup } from "@angular/forms";
+import { environment } from "../../../../environments/environment";
+import { OpenLibraryBookSearchInfo, GoogleBookInfo, OpenLibraryWorkInfo } from "../../../interfaces/book.interface";
 
 export abstract class BaseBook{
     constructor(private router: Router){
@@ -20,7 +21,7 @@ export abstract class BaseBook{
         try{
             this.router.navigate(['/book'],{
                 queryParams:{
-                    id: book.source === 'google' ? book.selfLink : book.key
+                    id: book.source === 'google' ? book.id : book.key
                 }
             });        
         }catch (err){

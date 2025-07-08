@@ -4,6 +4,7 @@ export interface GoogleUser{
     given_name: string,
     name: string,
     picture: string,
+    email: string,
     email_verified: boolean
 }
 
@@ -17,8 +18,8 @@ export interface BookBuddyUser{
     lastName: string,
     userName: string,
     email: string,
-    avatarUrl: string,
-    createdAt: string,
-    lastLoginAt: string,
-    wantToRead: Array<DatabaseBook>
+    avatarUrl?: string,
+    createdAt?: string,
+    lastLoginAt?: string,
+    wantToRead?: Array<DatabaseBook>
 }

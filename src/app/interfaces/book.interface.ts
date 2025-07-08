@@ -79,5 +79,10 @@ export interface DatabaseBook {
     id: string,
     author: string,
     title: string,
-    usersWantToRead: Array<BookBuddyUser>
+    usersWantToRead?: Array<BookBuddyUser>
+}
+
+export interface CreateBookDto {
+    author: string,
+    title: string
 }

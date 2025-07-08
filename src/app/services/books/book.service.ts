@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map, Observable, of } from 'rxjs';
-import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
+import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
+import { env } from 'process';
+import { Data } from '@angular/router';
+import { BookBuddyUser } from '../../interfaces/user.interface';
 
 
 @Injectable({
@@ -43,7 +46,7 @@ export class BookService {
   public getAPIBookById(id: string, api_type: string): Observable<GoogleBookInfo | OpenLibraryWorkInfo>{
     /** GOOGLE */
       if(api_type === "google") {
-        return this.http.get<GoogleBookInfo>(`${id}`).pipe(
+        return this.http.get<GoogleBookInfo>(`${environment.books.googleBookFetchApi}${id}`).pipe(
         map(a => {
           a.source = "google"; 
           console.log(`a: ${a}`)
@@ -66,6 +69,20 @@ export class BookService {
 
   public getBookByAuthorAndTitle(author: string, title: string) : Observable<any>{
     return this.http.get(`${environment.apiUrl}/Book/${author}/${title}`) as Observable<any>;
+  }
+
+  public createBookInDatabase(book: CreateBookDto): Observable<any>{
+    return this.http.post(`${environment.apiUrl}/Book`, book).pipe(catchError(err => {
+      console.log('error creating new book: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong creating a new book instance. Please try again.'));
+    })) as Observable<any>;
+  }
+
+  public updateBookWantToRead(userId: string, bookId: string ): Observable<any>{
+    return this.http.put(`${environment.apiUrl}/Book/${userId}/${bookId}`,{}).pipe(catchError(err => {
+      console.log('error saving new book preference: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong adding book to your want to read list. Please try again.'));
+    }))
   }
 
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{
