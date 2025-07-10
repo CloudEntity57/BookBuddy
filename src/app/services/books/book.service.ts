@@ -85,6 +85,10 @@ export class BookService {
     }))
   }
 
+  public deleteBookWantToRead(userId: string, bookId?: string): Observable<DatabaseBook>{
+    return this.http.delete(`${environment.apiUrl}/Book/${userId}/${bookId}`) as Observable<DatabaseBook>
+  }
+
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{
     return this.http.get(`${environment.books.openLibraryWorksApi}${author_key}.json`) as Observable<OpenLibraryAuthorInfo>;
   }

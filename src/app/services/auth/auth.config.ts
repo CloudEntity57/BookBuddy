@@ -16,6 +16,8 @@ export const googleAuthConfig: AuthConfig = {
     showDebugInformation: true,
     useSilentRefresh: true,
     silentRefreshRedirectUri: 'http://localhost:4200' + '/silent-refresh.html',
+    timeoutFactor: 0.75,
+    sessionChecksEnabled: true,
     // useHttpBasicAuth: false,
     customQueryParams: {
         access_type: 'offline',

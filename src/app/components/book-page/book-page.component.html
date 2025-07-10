@@ -8,11 +8,16 @@
         </div>
         <div class="action-to-read">
             <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button" mat-raised-button>I Want To Read This</button>
-            <button *ngIf="userWantsToRead" (click)="wantToRead(false)" class="action-button" mat-raised-button>I No Longer Want To Read This</button>
+            <button *ngIf="userWantsToRead" (click)="wantToRead(true)" class="action-button" mat-raised-button>Remove Me</button>
         </div>
         <div class="want-to-read">
             <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
-            <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">No users found. Invite someone!</div>
+            <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
+                <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
+                <span class="user-name">{{user?.userName}}</span>
+            </div>
+
+            <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
             <div class="want-to-read-header">Read <b>{{title}}</b> with <b>AI BookBuddies:</b></div>
 
             <div class="user-want-to-read" *ngFor="let user of wantToReadAIAgents">

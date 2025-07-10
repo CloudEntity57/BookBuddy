@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Inject, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
 import { OAuthModule } from 'angular-oauth2-oidc';
@@ -7,6 +7,7 @@ import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { fromEvent, throttleTime } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
+import { environment } from '../environments/environment';
 
 
 @Component({
@@ -14,12 +15,13 @@ import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-o
   imports: [RouterOutlet,
     MatButtonModule,
     OAuthModule,
+    RouterLink,
     CommonModule, BookDropdownOptionComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private router: Router){
   }
   private lastScrollTop = 0;
   title = 'bookbuddy';
@@ -42,6 +44,7 @@ export class AppComponent implements OnInit{
         })
       }
       if(loggedIn  === false){
+        console.log('no user logged in')
         this.isLoggedIn = false;
         this.changeDetector.detectChanges();
       }
@@ -64,7 +67,9 @@ export class AppComponent implements OnInit{
         document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       
-    })
+    });
+    // const returnUrl = localStorage.getItem('returnUrl') || '';
+    //   this.router.navigateByUrl(returnUrl).then(() => localStorage.removeItem('returnUrl'));
   }
 
   // public checklogin(){
