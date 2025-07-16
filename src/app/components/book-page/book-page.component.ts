@@ -9,9 +9,10 @@ import { catchError, map, Observable, of, Subscription, take, throwError } from 
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
+import {MatDividerModule} from '@angular/material/divider';
 @Component({
   selector: 'app-book-page',
-  imports: [ DatePipe, MatButtonModule, CommonModule ],
+  imports: [ DatePipe, MatButtonModule, MatDividerModule, CommonModule ],
   templateUrl: './book-page.component.html',
   styleUrl: './book-page.component.scss'
 })
@@ -57,17 +58,29 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.changeDetector.detectChanges();
           this.processBookData();
         }else{
-          this.userInfo = userInfo;
-          this.userLoggedIn = false;
+          this.restoreToLoggedOutState();
           this.changeDetector.detectChanges();
         }
       })
     );
-
-    this.processBookData();
+    this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
+      if(!login){
+        this.restoreToLoggedOutState();
+        this.changeDetector.detectChanges();
+      }
+    }))
+    if(!this.userLoggedIn){
+      this.processBookData();
+    }
     console.log('BOOK: ',this.book);
     console.log('WORK', this.work)
 
+  }
+
+  public restoreToLoggedOutState(): void {
+    this.userWantsToRead = false;
+    this.userLoggedIn = false;
+    this.userInfo = {} as BookBuddyUser;
   }
 
   public processBookData(){

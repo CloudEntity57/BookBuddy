@@ -23,3 +23,11 @@ export interface BookBuddyUser{
     lastLoginAt?: string,
     wantToRead?: Array<DatabaseBook>
 }
+
+export interface BookBuddyCreateUser{
+    userName: string,
+    email: string,
+    avatarUrl?: string,
+    createdAt?: Date,
+    lastLoginAt?: Date
+}

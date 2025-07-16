@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { googleAuthConfig } from './auth.config';
-import { BehaviorSubject, filter, map, Observable } from 'rxjs';
-import { BookBuddyUser, GoogleUser, UserAPIResponse } from '../../interfaces/user.interface';
-import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, catchError, filter, map, Observable, throwError } from 'rxjs';
+import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, UserAPIResponse } from '../../interfaces/user.interface';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -38,9 +38,6 @@ export class AuthService {
       if(this.oAuthService.hasValidAccessToken()){
         console.log('has valid token')
         this.$isLoggedIn.next(true);
-      }else if(!this.oAuthService.hasValidAccessToken){
-        console.log('token has expired - initializing token refresh flow')
-        this.oAuthService.initCodeFlow();
       }
       else{
         console.log('nobody is logged in')
@@ -51,7 +48,12 @@ export class AuthService {
     this.oAuthService.events.subscribe(e => {
       console.log(`auth service event: ${e.type}`)
       if(e.type === 'logout' || e.type === 'token_expires'){
+        console.log('token has expired - initializing token refresh flow')
+        const refreshToken = this.oAuthService.getRefreshToken();
+        console.log('Refresh token:', refreshToken);
+        this.oAuthService.refreshToken();
         this.$isLoggedIn.next(false);
+        this.userInfo.next({} as BookBuddyUser);
       }
     })
   }
@@ -63,16 +65,52 @@ export class AuthService {
       console.log('User Profile:', userProfile);
       // check if user exists in DB
       const email = userProfile.info.email;
-      this.checkIfUserExists(email).pipe().subscribe(user => {
-        console.log('USER EXISTS IN DB: ', user)
-        this.userInfo.next(user);
+      this.checkIfUserExists(email).subscribe({
+        next: user => {
+          console.log('USER EXISTS IN DB: ', user)
+          this.userInfo.next(user);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.newUserLogic(err, userProfile);
+        }
+
       });
       this.userProfile = userProfile;
     });
   }
 
+  public newUserLogic(err: HttpErrorResponse, userProfile: UserAPIResponse): void{
+    if(err.status === 404){
+      console.log('USER IS NOT in DB');
+      // user doesn't exist in DB. Create a user instance in DB:
+      const userDto: BookBuddyCreateUser = {
+        userName: userProfile.info.name,
+        email: userProfile.info.email,
+        avatarUrl: userProfile.info.picture,
+        createdAt: new Date()
+      };
+      this.saveNewUser(userDto).subscribe({
+        next: user => {
+          console.log('NEW USER CREATED IN DB: ', user)
+          this.userInfo.next(user);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.log('ERROR creating new user: ', err)
+        }
+      });
+    }
+  }
+
   public checkIfUserExists(userEmail: string): Observable<BookBuddyUser>{
-    return this.http.get(`${environment.apiUrl}/Users/${userEmail}`) as Observable<BookBuddyUser>;
+    return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/${userEmail}`).pipe(
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+    );
+  }
+
+  public saveNewUser(userDto: BookBuddyCreateUser): Observable<BookBuddyUser>{
+    return this.http.post<BookBuddyUser>(`${environment.apiUrl}/Users`, userDto).pipe(
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+    ); 
   }
 
 }
