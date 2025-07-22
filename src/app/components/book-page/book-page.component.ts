@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Data, Router } from '@angular/router';
 import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
 import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
@@ -8,21 +8,30 @@ import { BookService } from '../../services/books/book.service';
 import { catchError, map, Observable, of, Subscription, take, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
-import { BookBuddyUser } from '../../interfaces/user.interface';
+import { BookBuddyCreateRequest, BookBuddyUser } from '../../interfaces/user.interface';
 import {MatDividerModule} from '@angular/material/divider';
+import { BuddyService } from '../../services/buddies/buddy.service';
+import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { BuddyRequestDialogComponent } from '../../shared/components/buddy-request-dialog/buddy-request-dialog.component';
+import { ProgressBarService } from '../../services/progress-bar.service';
 @Component({
   selector: 'app-book-page',
-  imports: [ DatePipe, MatButtonModule, MatDividerModule, CommonModule ],
+  imports: [ DatePipe, 
+    MatButtonModule, 
+    MatDividerModule, 
+    CommonModule
+   ],
   templateUrl: './book-page.component.html',
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private changeDetector: ChangeDetectorRef){
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef){
 
     }
 
     public api_type = environment.books.bookByIdApi;
-
+    public requestNote: string = 'Let\'s be book buddies!'
+    readonly dialog = inject(MatDialog);
     public wantToReadAIAgents = wantToReadAIAgents;
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
     public userLoggedIn = false;
@@ -55,18 +64,18 @@ export class BookPageComponent implements OnInit, OnDestroy{
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
           this.userLoggedIn = true;
-          this.changeDetector.detectChanges();
+          this.changeDetector?.detectChanges();
           this.processBookData();
         }else{
           this.restoreToLoggedOutState();
-          this.changeDetector.detectChanges();
+          this.changeDetector?.detectChanges();
         }
       })
     );
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
       if(!login){
         this.restoreToLoggedOutState();
-        this.changeDetector.detectChanges();
+        this.changeDetector?.detectChanges();
       }
     }))
     if(!this.userLoggedIn){
@@ -83,12 +92,17 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userInfo = {} as BookBuddyUser;
   }
 
+  public userReceivedBuddyRequest(reqs: Array<BookBuddyUser>, user: BookBuddyUser): boolean {
+    if(!reqs || !user) return false;
+    return reqs.some(req => req.id != user.id);
+  }
+
   public processBookData(){
     this.route.queryParams.subscribe(params => {
       // clear existing want-to-read column for new data:
       this.usersWhoWantToRead = [];
       this.userWantsToRead = false;
-      this.changeDetector.detectChanges();
+      this.changeDetector?.detectChanges();
       console.log('NEW PARAMS - ', params)
       const bookId = params['id'];
       console.log('BOOK ID = ',bookId)
@@ -125,7 +139,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
                   console.log('user not logged in')
                 }
               }));
-              this.changeDetector.detectChanges();
+              this.changeDetector?.detectChanges();
       }));
     });
   }
@@ -177,6 +191,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
 
   public wantToRead(cancel?: boolean): void {
+    this.progressBarService.startProgressBar();
     if(cancel){
       console.log('REMOVING BOOK FROM WANT TO READ LIST', this.userInfo.id, this.databaseBook?.id)
       this.subscriptions.push(this.bookService.deleteBookWantToRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
@@ -188,6 +203,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.usersWhoWantToRead = this.usersWhoWantToRead.filter(user => user.id !== this.userInfo.id);
           this.changeDetector.detectChanges();
         }
+        this.progressBarService.stopProgressBar();
       }));
       return;
     }
@@ -214,9 +230,11 @@ export class BookPageComponent implements OnInit, OnDestroy{
             this.databaseBook = res;
             this.bookService.updateBookWantToRead(userId, book.id).subscribe(created => {
               this.setUserWantsToRead(created);
+              this.progressBarService.stopProgressBar();
             })
           }));
         }
+        this.progressBarService.stopProgressBar();
         return throwError(() => new Error('Something went wrong. Please try again.'));
       })
     ).subscribe(res => {
@@ -227,8 +245,61 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.checkIfLoggedIn();
       this.bookService.updateBookWantToRead(this.userInfo.id, book.id).subscribe(created => {
         this.setUserWantsToRead(created);
-      })
+      });
+      this.progressBarService.stopProgressBar();
     }))
+  }
+
+  public sendBuddyRequest(user: BookBuddyUser){
+    console.log('sending buddy request to ', user)
+    const activeUserID = this.userInfo.id;
+    console.log('active user id: ', activeUserID)
+    const passiveUserID = user.id;
+    const bookTitle = this.book.volumeInfo.title;
+    let note = 'I want to be your book buddy'
+
+    const dialogRef = this.dialog.open(BuddyRequestDialogComponent, {
+      data: {
+        name: user.userName,
+        requestNote: this.requestNote
+      }
+    });
+    dialogRef.afterClosed().subscribe(res => {
+      console.log('RES TO REQUEST: ', res)
+      if(res !== undefined){
+        note = res;
+        this.progressBarService.startProgressBar();
+        this.buddyService.sendBuddyRequest(activeUserID,passiveUserID,note,bookTitle).subscribe(res => {
+          if(res){
+            console.log('buddy request successfully sent')
+            this.updateUser();
+            this.progressBarService.stopProgressBar();
+          }
+        });
+      }
+    })
+    
+  }
+
+  public updateUser(){
+    this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
+      if(!res) return;
+      console.log('res: ', res)
+      this.userInfo = res;
+    });
+  }
+  public cancelBuddyRequest(user: BookBuddyUser){
+    this.progressBarService.startProgressBar();
+    console.log('canceling buddy request');
+    const activeUserID = this.userInfo.id;
+    const passiveUserID = user.id;
+    this.buddyService.sendCancelBuddyRequest(activeUserID,passiveUserID).subscribe(res => {
+      if(res){
+        console.log('buddy request successfully cancelled');
+        this.updateUser();
+        this.progressBarService.stopProgressBar();
+      }
+    })
   }
 
   public setUserWantsToRead(created: DatabaseBook): void{

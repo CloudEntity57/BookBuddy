@@ -53,8 +53,10 @@ main{
     width: 40px;
     height: 40px;
     border-radius: 25px;
+    z-index: 10;
     margin-left: $right-controls-spacing;
     background-size: cover;
+    cursor: pointer !important;
 }
 
 .search{

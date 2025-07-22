@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>Include a note to {{data.name}}</h2>
+<!-- <mat-dialog-content> -->
+    <mat-form-field>
+        <mat-label>Note</mat-label>
+        <textarea matInput [(ngModel)]="buddyNote">
+        </textarea>
+    </mat-form-field>
+<!-- </mat-dialog-content> -->
+<mat-dialog-actions>
+    <button [mat-dialog-close]="buddyNote()" cdkFocusInitial matButton>Send Request</button>
+    <button (click)="onNoClick()" matButton>Cancel</button>
+</mat-dialog-actions>
+

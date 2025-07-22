@@ -13,11 +13,20 @@
             <button *ngIf="isLoggedIn" (click)="logout()" mat-raised-button class="login">Log Out</button>
             <!-- <button (click)="checklogin()" mat-raised-button>Check</button> -->
              <ng-container *ngIf="isLoggedIn && userIconURL">
-                <span class="user-icon" [style.background-image]="`url(${userIconURL})`"></span>
+              <div class="user-icon"
+                [style.background-image]="`url(${userIconURL})`"
+                [matMenuTriggerFor]="userMenu" 
+                #menuTrigger="matMenuTrigger">
+              </div>
+                <mat-menu
+                (mouseleave)="onMouseLeave(menuTrigger)" #userMenu="matMenu">
+                <div mat-menu-item>Manage Profile</div>
+                </mat-menu>
              </ng-container>
         </div>
     </div>
   </div>
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 </nav>
 <main>
   <router-outlet />

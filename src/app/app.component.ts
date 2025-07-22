@@ -2,12 +2,15 @@ import { ChangeDetectorRef, Component, Inject, OnChanges, OnDestroy, OnInit, Sim
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { fromEvent, Subscription, throttleTime } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { environment } from '../environments/environment';
+import { ProgressBarService } from './services/progress-bar.service';
 
 
 @Component({
@@ -16,18 +19,23 @@ import { environment } from '../environments/environment';
     MatButtonModule,
     OAuthModule,
     RouterLink,
+    MatMenuModule,
+    MatProgressBarModule,
     CommonModule, BookDropdownOptionComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private router: Router){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService){
   }
   private lastScrollTop = 0;
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
   public userIconURL?: string;
   public subscriptions: Array<Subscription> = [];
+  public isHovering: boolean = false;
+  public closeTimeout: any;
+  public isLoading: boolean = false;
 
   ngOnInit(): void {
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe((loggedIn)=>{
@@ -66,6 +74,10 @@ export class AppComponent implements OnInit, OnDestroy{
       }
       this.lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     }));
+    this.subscriptions.push(this.progressBarService.isLoading.subscribe(loading => {
+      this.isLoading = loading;
+      this.changeDetector.detectChanges();
+    }))
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
     //   console.log('scrollend')
     //     const currentScroll = document.documentElement.scrollTop;
@@ -81,6 +93,21 @@ export class AppComponent implements OnInit, OnDestroy{
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
   
+  public dropdownCloseAction(menuTrigger: MatMenuTrigger){
+    setTimeout(() => {
+      menuTrigger.closeMenu();
+    }, 500);
+  }
+
+  public onMouseEnter(menuTrigger: MatMenuTrigger) {
+    console.log('mouse enter')
+    menuTrigger.openMenu();
+
+  }
+  public onMouseLeave(menuTrigger: MatMenuTrigger) {
+    console.log('mouse leave')
+   menuTrigger.closeMenu();
+  }
 
   public login(){
     this.authService.login();

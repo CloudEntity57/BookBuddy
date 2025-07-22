@@ -21,7 +21,9 @@ export interface BookBuddyUser{
     avatarUrl?: string,
     createdAt?: string,
     lastLoginAt?: string,
-    wantToRead?: Array<DatabaseBook>
+    wantToRead?: Array<DatabaseBook>,
+    sentBuddyRequests: Array<BookBuddyUser>,
+    receivedBuddyRequests?: Array<BookBuddyUser>
 }
 
 export interface BookBuddyCreateUser{
@@ -30,4 +32,17 @@ export interface BookBuddyCreateUser{
     avatarUrl?: string,
     createdAt?: Date,
     lastLoginAt?: Date
+}
+
+export interface BookBuddyCreateRequest{
+    activeUserID: string,
+    passiveUserID: string,
+    bookTitle: string,
+    note: string,
+    dateAdded: string;
+}
+
+export interface BookBuddyDeleteRequest{
+    activeUserID: string,
+    passiveUserID: string
 }

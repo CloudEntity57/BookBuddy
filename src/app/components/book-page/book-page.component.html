@@ -9,13 +9,21 @@
         <div class="action-to-read">
             <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button" mat-raised-button>I Want To Read This</button>
             <button *ngIf="userWantsToRead" (click)="wantToRead(true)" class="action-button" mat-raised-button>Remove Me</button>
+            <ul>
+                <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
+                <li>Once book buddies, you can discuss books together via messaging, or get serious and schedule a seminar or video chat.</li>
+                <li>Invite anyone you are book buddies with to read anything, and message freely.</li>
+            </ul>
+
         </div>
         <div class="want-to-read">
             <div class="buddies">
                 <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
                 <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
-                    <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
-                    <span class="user-name">{{user?.userName}}</span>
+                    <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
+                    <span class="user-name">{{user.userName}}</span>
+                    <span *ngIf="(user.id != userInfo.id) && !userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button" mat-raised-button>Buddy</button></span>
+                    <span *ngIf="(user.id != userInfo.id) && userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button" mat-raised-button>Cancel Request</button></span>
                 </div>
                 <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
             </div>

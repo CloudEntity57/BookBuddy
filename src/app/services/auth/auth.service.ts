@@ -47,11 +47,13 @@ export class AuthService {
     })
     this.oAuthService.events.subscribe(e => {
       console.log(`auth service event: ${e.type}`)
-      if(e.type === 'logout' || e.type === 'token_expires'){
+      if(e.type === 'token_expires'){
         console.log('token has expired - initializing token refresh flow')
         const refreshToken = this.oAuthService.getRefreshToken();
         console.log('Refresh token:', refreshToken);
         this.oAuthService.refreshToken();
+      }
+      if(e.type === 'logout'){
         this.$isLoggedIn.next(false);
         this.userInfo.next({} as BookBuddyUser);
       }
@@ -65,7 +67,7 @@ export class AuthService {
       console.log('User Profile:', userProfile);
       // check if user exists in DB
       const email = userProfile.info.email;
-      this.checkIfUserExists(email).subscribe({
+      this.getUserByEmail(email).subscribe({
         next: user => {
           console.log('USER EXISTS IN DB: ', user)
           this.userInfo.next(user);
@@ -78,6 +80,7 @@ export class AuthService {
       this.userProfile = userProfile;
     });
   }
+
 
   public newUserLogic(err: HttpErrorResponse, userProfile: UserAPIResponse): void{
     if(err.status === 404){
@@ -101,7 +104,7 @@ export class AuthService {
     }
   }
 
-  public checkIfUserExists(userEmail: string): Observable<BookBuddyUser>{
+  public getUserByEmail(userEmail: string): Observable<BookBuddyUser>{
     return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/${userEmail}`).pipe(
         catchError((error: HttpErrorResponse) => throwError(() => error))
     );

@@ -1,8 +1,25 @@
 @use 'app/app.component.scss';
 @use 'styles.scss';
 
+@mixin centered-styling {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.book-info, .action-to-read, .want-to-read{
+    width: 25vw;
+    @media(max-width: 950px) {
+        width: 35vw;
+    }
+    @media(max-width: 650px){
+        width: 80vw;
+    }
+}
+
 .book-info{
-    max-width: 30vw;
+    // max-width: 30vw;
 }
 
 .book-columns{
@@ -18,7 +35,7 @@
 }
 
 .want-to-read{
-    max-width: 25vw;
+    // max-width: 25vw;
 }
 
 .want-to-read-header{
@@ -34,8 +51,11 @@ mat-divider{
 }
 
 .book-image{
-    width: 20vw;
+    width: 85%;
     margin-bottom: 20px;
+    @media(max-width: 650px){
+        width: 40vw;
+    }
 }
 
 .book-description{
@@ -48,41 +68,53 @@ $transition-speed: .75s;
 $expanded-height: 63px;
 
 .user-want-to-read{
+    max-width: 290px;
     display: flex;
+    flex-direction: row;
+    // justify-content: ;
     margin-top: 4px;
     padding: 4px;
     border: 1px solid styles.$secondary-color;
     height: $user-height;
     border-radius: 50px;
     &:hover{
-        // background-color: styles.$secondary-action-color;
         cursor: pointer;
-        height: $expanded-height;
-        // border: 1px solid #353535;
-        width: 300px;
-        .user-avatar{
-            width: $expanded-height;
-            height: $expanded-height;
-            transition: width .6s;
-        }
+        // height: $expanded-height;
+        // width: 300px;
+        // .user-avatar{
+        //     width: $expanded-height;
+        //     height: $expanded-height;
+        //     transition: width .6s;
+        // }
         transition: all .6s;
+        .invite-buddy{
+            width: 100px;
+            transition: all .6s;
+        }
 
     }
+}
+.invited-buddy{
+    width: 100px;
 }
 
 .user-avatar{
     border-radius: 50%;
     // height:$user-height;
-    height: auto;
-    width: $user-height;
+    min-height: $user-height;
+    min-width: $user-height;
     background-size: cover;
 }
 
 .user-name{
     font-weight: bold;
     margin-left: 15px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    @include centered-styling;
+}
+
+.invite-buddy{
+    @include centered-styling;
+    width: 0px;
+    overflow: hidden;
+    margin-left: 5px;
 }
