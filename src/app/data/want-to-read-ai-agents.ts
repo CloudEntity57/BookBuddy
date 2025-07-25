@@ -12,7 +12,9 @@ export const wantToReadAIAgents: Array<BookBuddyUser> = [
         lastName: "",
         userName: "JoeyReadsEverything",
         wantToRead: [],
-        sentBuddyRequests: []
+        sentBuddyRequests: [],
+        receivedBuddyRequests: [],
+        buddies: []
       },
       {
         avatarUrl: "assets/images/emma2_cropped.png",
@@ -21,9 +23,11 @@ export const wantToReadAIAgents: Array<BookBuddyUser> = [
         firstName: "Emma",
         id: "i2e264dc-v9g5-440r-990f-59d65dc34avd",
         lastName: "",
-        userName: "Book Grrrrl",
+        userName: "Book Grrrl",
         wantToRead: [],
-        sentBuddyRequests: []
+        sentBuddyRequests: [],
+        receivedBuddyRequests: [],
+        buddies: []
       },
 
       {
@@ -35,6 +39,8 @@ export const wantToReadAIAgents: Array<BookBuddyUser> = [
         lastName: "",
         userName: "Ogre",
         wantToRead: [],
-        sentBuddyRequests: []
+        sentBuddyRequests: [],
+        receivedBuddyRequests: [],
+        buddies: []
       }
     ]

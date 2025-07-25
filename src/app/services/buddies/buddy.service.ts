@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { BookBuddyCreateRequest, BookBuddyDeleteRequest, BookBuddyUser } from '../../interfaces/user.interface';
+import { BookBuddyCreateRequest, BookBuddyDeleteRequest, BookBuddyUser, CreateBuddyDTO } from '../../interfaces/user.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +24,22 @@ export class BuddyService {
   }
 
   public sendCancelBuddyRequest(activeUserID: string, passiveUserID: string): Observable<boolean> {
+    const buddyDTO: BookBuddyDeleteRequest = {
+      activeUserID,
+      passiveUserID
+    };
+    return this.http.delete(`${environment.apiUrl}/buddy/request`,{body: buddyDTO}) as Observable<boolean>;
+  }
+
+  public acceptBuddyRequest(activeUserID: string, passiveUserID: string):Observable<boolean>{
+    const buddyDTO: CreateBuddyDTO = {
+      activeUserID,
+      passiveUserID
+    }
+    return this.http.post(`${environment.apiUrl}/buddy`, buddyDTO) as Observable<boolean>;
+  }
+
+  public rejectBuddyRequest(activeUserID: string, passiveUserID: string):Observable<boolean>{
     const buddyDTO: BookBuddyDeleteRequest = {
       activeUserID,
       passiveUserID

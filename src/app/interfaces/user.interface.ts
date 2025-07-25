@@ -42,6 +42,11 @@ export interface BookBuddyCreateRequest{
     dateAdded: string;
 }
 
+export interface CreateBuddyDTO{
+    activeUserID: string,
+    passiveUserID: string
+}
+
 export interface BookBuddyDeleteRequest{
     activeUserID: string,
     passiveUserID: string

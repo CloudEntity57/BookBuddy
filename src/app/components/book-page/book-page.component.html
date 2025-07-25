@@ -20,11 +20,26 @@
             <div class="buddies">
                 <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
                 <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
-                    <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
-                    <span class="user-name">{{user.userName}}</span>
-                    <span *ngIf="(user.id != userInfo.id) && !userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button" mat-raised-button>Buddy</button></span>
-                    <span *ngIf="(user.id != userInfo.id) && userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button" mat-raised-button>Cancel Request</button></span>
-                </div>
+                    <span class="username-and-icon">
+                        <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
+                        <span class="user-name">{{user.userName}}</span>
+                    </span>
+
+                    <!-- send a buddy request -->
+                    <span *ngIf="(user.id != userInfo.id) && !userReceivedBuddyRequest(userInfo.sentBuddyRequests, user) && !isBuddyRequester(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
+
+                    <!-- cancel the buddy request -->
+                    <span *ngIf="(user.id != userInfo.id) && userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Cancel</button></span>
+
+                    <!-- accept a buddy request -->
+                    <span class="invited-buddy" *ngIf="user.id && isBuddyRequester(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" ><button [matMenuTriggerFor]="buddyMenu" class="action-button buddy-button" mat-raised-button>Respond</button></span>   
+                    <mat-menu #buddyMenu="matMenu">
+                        <button class="menu-button" (click)="acceptBuddyRequest(user)" mat-menu-item>Accept Request</button>
+                        <button class="menu-button" (click)="rejectBuddyRequest(user)" mat-menu-item>Ignore</button>
+                    </mat-menu>
+                    
+                    <!-- reject a buddy request -->
+                 </div>
                 <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
             </div>
             <div class="ai-buddies">
@@ -32,8 +47,10 @@
                 <div class="want-to-read-header">Or: Read <b>{{title}}</b> with <b>AI BookBuddies:</b></div>
 
                 <div class="user-want-to-read" *ngFor="let user of wantToReadAIAgents">
-                    <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
-                    <span class="user-name">{{user?.userName}}</span>
+                    <span class="username-and-icon">
+                        <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
+                        <span class="user-name">{{user?.userName}}</span>
+                    </span>
                 </div>
             </div>
         </div>

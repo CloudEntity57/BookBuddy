@@ -14,7 +14,7 @@ export const googleAuthConfig: AuthConfig = {
     scope: 'openid profile email https://www.googleapis.com/auth/userinfo.profile',
     responseType: 'code',
     showDebugInformation: true,
-    useSilentRefresh: true,
+    useSilentRefresh: false,
     silentRefreshRedirectUri: 'http://localhost:4200' + '/silent-refresh.html',
     timeoutFactor: 0.75,
     sessionChecksEnabled: true,

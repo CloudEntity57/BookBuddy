@@ -14,10 +14,12 @@ import { BuddyService } from '../../services/buddies/buddy.service';
 import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { BuddyRequestDialogComponent } from '../../shared/components/buddy-request-dialog/buddy-request-dialog.component';
 import { ProgressBarService } from '../../services/progress-bar.service';
+import { MatMenuModule } from '@angular/material/menu';
 @Component({
   selector: 'app-book-page',
   imports: [ DatePipe, 
     MatButtonModule, 
+    MatMenuModule,
     MatDividerModule, 
     CommonModule
    ],
@@ -30,7 +32,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
 
     public api_type = environment.books.bookByIdApi;
-    public requestNote: string = 'Let\'s be book buddies!'
+    public requestNote: string = ''
     readonly dialog = inject(MatDialog);
     public wantToReadAIAgents = wantToReadAIAgents;
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
@@ -92,10 +94,42 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userInfo = {} as BookBuddyUser;
   }
 
-  public userReceivedBuddyRequest(reqs: Array<BookBuddyUser>, user: BookBuddyUser): boolean {
-    if(!reqs || !user) return false;
-    return reqs.some(req => req.id != user.id);
+  public userReceivedBuddyRequest(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {
+    if(!mySentBuddyReqs || !otheruser) return false;
+    // console.log(otheruser.userName + ' received a buddy request: ',mySentBuddyReqs.some(myReq => myReq.id == otheruser.id))
+    return mySentBuddyReqs.some(req => req.id == otheruser.id);
   }
+
+  public isBuddyRequester(reqs: Array<BookBuddyUser>, user: BookBuddyUser):boolean{
+    if(!reqs || !reqs.length) return false;
+    return reqs.some(req => req.id === user.id);
+  }
+
+  public acceptBuddyRequest(requester: BookBuddyUser){
+    this.progressBarService.startProgressBar();
+    this.subscriptions.push(this.buddyService.acceptBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
+      if(res){
+        this.updateUser();
+        this.progressBarService.stopProgressBar();
+      }
+    }));
+  }
+
+  public rejectBuddyRequest(requester: BookBuddyUser){
+    this.progressBarService.startProgressBar();
+    console.log('rejecting buddy request')
+    if(!requester){
+      console.log('undefined inputs for users ', requester)
+      return;
+    }
+    this.subscriptions.push(this.buddyService.rejectBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
+      if(res) console.log('request ignored');
+      this.updateUser();
+      this.progressBarService.stopProgressBar();
+      this.changeDetector.detectChanges();
+    }))
+  }
+
 
   public processBookData(){
     this.route.queryParams.subscribe(params => {
@@ -134,6 +168,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
                 this.usersWhoWantToRead = res.usersWantToRead;
                 // if user is logged in, check if book is on their read list:
                 if(this.userLoggedIn){
+                  console.log('user logged in')
                   this.checkIfBookOnUserReadList(res);
                 }else{
                   console.log('user not logged in')
@@ -243,9 +278,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
       const usersWantToRead = JSON.stringify(book.usersWantToRead);
       console.log(`res: ${book.title} - ${usersWantToRead}`)
       this.checkIfLoggedIn();
-      this.bookService.updateBookWantToRead(this.userInfo.id, book.id).subscribe(created => {
+      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book.id).subscribe(created => {
         this.setUserWantsToRead(created);
-      });
+      }));
       this.progressBarService.stopProgressBar();
     }))
   }
@@ -264,7 +299,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         requestNote: this.requestNote
       }
     });
-    dialogRef.afterClosed().subscribe(res => {
+    this.subscriptions.push(dialogRef.afterClosed().subscribe(res => {
       console.log('RES TO REQUEST: ', res)
       if(res !== undefined){
         note = res;
@@ -277,29 +312,29 @@ export class BookPageComponent implements OnInit, OnDestroy{
           }
         });
       }
-    })
+    }))
     
   }
 
   public updateUser(){
-    this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
+    this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
       if(!res) return;
       console.log('res: ', res)
       this.userInfo = res;
-    });
+    }));
   }
   public cancelBuddyRequest(user: BookBuddyUser){
     this.progressBarService.startProgressBar();
     console.log('canceling buddy request');
     const activeUserID = this.userInfo.id;
     const passiveUserID = user.id;
-    this.buddyService.sendCancelBuddyRequest(activeUserID,passiveUserID).subscribe(res => {
+    this.subscriptions.push(this.buddyService.sendCancelBuddyRequest(activeUserID,passiveUserID).subscribe(res => {
       if(res){
         console.log('buddy request successfully cancelled');
         this.updateUser();
         this.progressBarService.stopProgressBar();
       }
-    })
+    }));
   }
 
   public setUserWantsToRead(created: DatabaseBook): void{
