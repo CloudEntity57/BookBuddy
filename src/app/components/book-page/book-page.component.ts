@@ -5,7 +5,7 @@ import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, map, Observable, of, Subscription, take, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subscription, switchMap, take, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyCreateRequest, BookBuddyUser } from '../../interfaces/user.interface';
@@ -34,6 +34,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public api_type = environment.books.bookByIdApi;
     public requestNote: string = ''
     readonly dialog = inject(MatDialog);
+    public buddies: Array<BookBuddyUser> = [];
     public wantToReadAIAgents = wantToReadAIAgents;
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
     public userLoggedIn = false;
@@ -66,6 +67,11 @@ export class BookPageComponent implements OnInit, OnDestroy{
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
           this.userLoggedIn = true;
+          // retrieve buddy list
+          this.subscriptions.push(this.buddyService.getBuddies(this.userInfo.id).subscribe({
+            next: buddies => this.buddies = buddies,
+            error: err => console.log('error retrieving buddies: ', err)
+          }));
           this.changeDetector?.detectChanges();
           this.processBookData();
         }else{
@@ -79,7 +85,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         this.restoreToLoggedOutState();
         this.changeDetector?.detectChanges();
       }
-    }))
+    }));
     if(!this.userLoggedIn){
       this.processBookData();
     }
@@ -105,12 +111,31 @@ export class BookPageComponent implements OnInit, OnDestroy{
     return reqs.some(req => req.id === user.id);
   }
 
+  public isExistingBuddy(userId: string): boolean{
+    return this.buddies.some(user => user.id == userId);
+  }
+
   public acceptBuddyRequest(requester: BookBuddyUser){
     this.progressBarService.startProgressBar();
-    this.subscriptions.push(this.buddyService.acceptBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
-      if(res){
-        this.updateUser();
-        this.progressBarService.stopProgressBar();
+    this.subscriptions.push(this.buddyService.acceptBuddyRequest(requester.id, this.userInfo.id).pipe(
+      switchMap(res => {
+        return this.buddyService.sendCancelBuddyRequest(requester.id, this.userInfo.id) as Observable<boolean | undefined>;
+      }),
+      switchMap(res => {
+        return this.buddyService.getBuddies(this.userInfo.id);
+      })
+    ).subscribe({
+      next: updatedFriendships => {
+        if(updatedFriendships){
+          console.log('successfully added new buddy, removed buddy request and retrieved latest buddy list');
+          this.updateUser();
+          this.buddies = updatedFriendships;
+          console.log('updated buddies: ', this.buddies);
+          this.progressBarService.stopProgressBar();
+        }
+      },
+      error: err => {
+        console.log('error accepting buddy request: ', err);
       }
     }));
   }
@@ -128,6 +153,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.progressBarService.stopProgressBar();
       this.changeDetector.detectChanges();
     }))
+  }
+
+  public messageUser(user: BookBuddyUser): void{
+    console.log('messaging user ', user)
   }
 
 
@@ -317,6 +346,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
 
   public updateUser(){
+    console.log('updating user')
     this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
       if(!res) return;
       console.log('res: ', res)

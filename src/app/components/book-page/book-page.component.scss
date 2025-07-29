@@ -1,5 +1,6 @@
 @use 'app/app.component.scss';
 @use 'styles.scss';
+// @use 'styles.scss' as styles;
 
 @mixin centered-styling {
     height: 100%;
@@ -128,6 +129,10 @@ $expanded-height: 63px;
 
 .buddy-button{
     height: 30px;
+}
+
+.buddy-accept-menu > *{
+    background-color: styles.$dark-main-color !important;
 }
 
 .username-and-icon{

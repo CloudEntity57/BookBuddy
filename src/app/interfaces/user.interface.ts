@@ -23,7 +23,8 @@ export interface BookBuddyUser{
     lastLoginAt?: string,
     wantToRead?: Array<DatabaseBook>,
     sentBuddyRequests: Array<BookBuddyUser>,
-    receivedBuddyRequests?: Array<BookBuddyUser>
+    receivedBuddyRequests: Array<BookBuddyUser>,
+    buddies: Array<BookBuddyUser>
 }
 
 export interface BookBuddyCreateUser{
@@ -43,8 +44,8 @@ export interface BookBuddyCreateRequest{
 }
 
 export interface CreateBuddyDTO{
-    activeUserID: string,
-    passiveUserID: string
+    userAId: string,
+    userBId: string
 }
 
 export interface BookBuddyDeleteRequest{

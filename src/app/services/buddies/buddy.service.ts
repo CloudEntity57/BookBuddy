@@ -33,8 +33,8 @@ export class BuddyService {
 
   public acceptBuddyRequest(activeUserID: string, passiveUserID: string):Observable<boolean>{
     const buddyDTO: CreateBuddyDTO = {
-      activeUserID,
-      passiveUserID
+      userAId: activeUserID,
+      userBId: passiveUserID
     }
     return this.http.post(`${environment.apiUrl}/buddy`, buddyDTO) as Observable<boolean>;
   }
@@ -45,5 +45,9 @@ export class BuddyService {
       passiveUserID
     };
     return this.http.delete(`${environment.apiUrl}/buddy/request`,{body: buddyDTO}) as Observable<boolean>;
+  }
+
+  public getBuddies(userId: string) : Observable<Array<BookBuddyUser>>{
+    return this.http.get(`${environment.apiUrl}/buddy/${userId}`) as Observable<Array<BookBuddyUser>>;
   }
 }

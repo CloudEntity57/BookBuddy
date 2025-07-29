@@ -7,7 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
-import { fromEvent, Subscription, throttleTime } from 'rxjs';
+import { debounceTime, fromEvent, Subscription, throttleTime } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { environment } from '../environments/environment';
 import { ProgressBarService } from './services/progress-bar.service';
@@ -58,17 +58,22 @@ export class AppComponent implements OnInit, OnDestroy{
         this.changeDetector.detectChanges();
       }
     }));
-    this.subscriptions.push(fromEvent(window, 'scroll').pipe(throttleTime(90)).subscribe(()=>{
+    this.subscriptions.push(fromEvent(window, 'scroll').pipe(debounceTime(10)).subscribe(()=>{
       const currentScroll = document.documentElement.scrollTop;
       if(currentScroll > this.lastScrollTop){
+        console.log(' > last scroll top')
         document.querySelector('.main-navbar')?.setAttribute('class','main-navbar vanishing');
+        // setTimeout(() => {
+        //   document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
+        // },500)
         this.changeDetector.detectChanges();
-      }else if(currentScroll === 0){
-        console.log('scrolled to top')
+      }else if(currentScroll <= 200){
+        console.log('scrolled to top. current: ', currentScroll)
         document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       }
       else{
+        console.log('else scroll evt')
         document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       }

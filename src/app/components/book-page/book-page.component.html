@@ -26,19 +26,22 @@
                     </span>
 
                     <!-- send a buddy request -->
-                    <span *ngIf="(user.id != userInfo.id) && !userReceivedBuddyRequest(userInfo.sentBuddyRequests, user) && !isBuddyRequester(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
+                    <span *ngIf="(user.id != userInfo.id) && !isExistingBuddy(user.id) && !userReceivedBuddyRequest(userInfo.sentBuddyRequests, user) && !isBuddyRequester(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
 
                     <!-- cancel the buddy request -->
                     <span *ngIf="(user.id != userInfo.id) && userReceivedBuddyRequest(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Cancel</button></span>
 
-                    <!-- accept a buddy request -->
+                    <!-- accept or ignore (reject) a buddy request -->
                     <span class="invited-buddy" *ngIf="user.id && isBuddyRequester(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" ><button [matMenuTriggerFor]="buddyMenu" class="action-button buddy-button" mat-raised-button>Respond</button></span>   
-                    <mat-menu #buddyMenu="matMenu">
+                    <mat-menu class="buddy-accept-menu" #buddyMenu="matMenu">
                         <button class="menu-button" (click)="acceptBuddyRequest(user)" mat-menu-item>Accept Request</button>
                         <button class="menu-button" (click)="rejectBuddyRequest(user)" mat-menu-item>Ignore</button>
+                        <button class="menu-button" (click)="messageUser(user)" mat-menu-item>Message</button>
                     </mat-menu>
                     
-                    <!-- reject a buddy request -->
+                    <!-- message an existing buddy -->
+                    <span *ngIf="(user.id != userInfo.id) && isExistingBuddy(user.id)" class="invited-buddy"><button (click)="messageUser(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
+
                  </div>
                 <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
             </div>
