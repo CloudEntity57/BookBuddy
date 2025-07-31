@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
 
 // light theme colors:
 // $main-color: #712cf9;
@@ -12,6 +12,7 @@ $dark-main-color: #314a4f;
 // $secondary-color: #c4ced2;
 $secondary-color: #263e48;
 $font-color: #fff;
+$dropdown-color: #1e4e63;
 
 $tertiary-color: #f6fac8;
 // $action-color: #f8ac49;
@@ -30,4 +31,13 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     display: block;
     width: 100%;
     padding: 10px;
+}
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+:root {
+  @include mat.menu-overrides((
+    container-color: $dropdown-color,
+    item-label-text-color: #fff,
+    divider-color: red,
+  ));
 }

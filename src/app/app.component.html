@@ -1,3 +1,13 @@
+<div class="message-bar-container">
+  <app-message-bar></app-message-bar>
+</div>
+<div class="message-bar-container message-bar-container-second">
+  <app-message-bar></app-message-bar>
+</div>
+<div class="message-bar-container third">
+  <app-message-bar></app-message-bar>
+</div>
+
 <div class="navbar-buffer"></div>
 <nav class="main-navbar">
   <div class="container navbar-container">
@@ -10,7 +20,7 @@
             <!-- <input type="text" class="search form-control" placeholder="Search"> -->
              <app-book-dropdown-option dropdown_type="navbar-search" dropdown_text="Search Books, Authors"></app-book-dropdown-option>
             <button *ngIf="!isLoggedIn" (click)="login()" mat-raised-button class="login">Log In</button>
-            <button *ngIf="isLoggedIn" (click)="logout()" mat-raised-button class="login">Log Out</button>
+            <!-- <button *ngIf="isLoggedIn" (click)="logout()" mat-raised-button class="login">Log Out</button> -->
             <!-- <button (click)="checklogin()" mat-raised-button>Check</button> -->
              <ng-container *ngIf="isLoggedIn && userIconURL">
               <div class="user-icon"
@@ -18,10 +28,19 @@
                 [matMenuTriggerFor]="userMenu" 
                 #menuTrigger="matMenuTrigger">
               </div>
-                <mat-menu
+                <mat-menu class="navbar-dropdown"
                 (mouseleave)="onMouseLeave(menuTrigger)" #userMenu="matMenu">
-                <div mat-menu-item>Manage Profile</div>
+                  <div mat-menu-item>Manage Profile</div>
                 </mat-menu>
+             </ng-container>
+             <ng-container *ngIf="isLoggedIn">
+              <div class="menu-icon-container" [matMenuTriggerFor]="iconMenu" #menuTrigger="matMenuTrigger">
+                <mat-icon class="menu-icon">menu</mat-icon>
+                <mat-icon *ngIf="unreadNotifications === true" class="notification-dot">circle</mat-icon>
+              </div>
+              <mat-menu #iconMenu="matMenu">
+                <div (click)="logout()" mat-menu-item>Log Out</div>
+              </mat-menu>
              </ng-container>
         </div>
     </div>
