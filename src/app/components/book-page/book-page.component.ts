@@ -1,33 +1,36 @@
-import { AfterViewInit, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Data, Router } from '@angular/router';
-import { GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
-import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
+import { CreateNotificationDTO, Notification, NotificationType } from '../../interfaces/notification.interface';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
 import { catchError, map, Observable, of, Subscription, switchMap, take, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
-import { BookBuddyCreateRequest, BookBuddyUser } from '../../interfaces/user.interface';
+import { BookBuddyUser } from '../../interfaces/user.interface';
 import {MatDividerModule} from '@angular/material/divider';
 import { BuddyService } from '../../services/buddies/buddy.service';
-import { MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { BuddyRequestDialogComponent } from '../../shared/components/buddy-request-dialog/buddy-request-dialog.component';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { MatMenuModule } from '@angular/material/menu';
+import { MessageBarComponent } from "../message-bar/message-bar.component";
+import { NotificationService } from '../../services/notifications/notification.service';
 @Component({
   selector: 'app-book-page',
-  imports: [ DatePipe, 
-    MatButtonModule, 
+  imports: [DatePipe,
+    MatButtonModule,
     MatMenuModule,
-    MatDividerModule, 
+    MatDividerModule,
     CommonModule
-   ],
+  ],
   templateUrl: './book-page.component.html',
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef){
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
 
     }
 
@@ -338,6 +341,19 @@ export class BookPageComponent implements OnInit, OnDestroy{
             console.log('buddy request successfully sent')
             this.updateUser();
             this.progressBarService.stopProgressBar();
+            // const buddyRequestNotification: CreateNotificationDTO = {
+            //   recipientId: passiveUserID,
+            //   actorId: activeUserID,
+            //   type: NotificationType.BuddyRequest,
+            //   isRead: false,
+            //   timestamp: new Date(),
+            //   message: `${this.userInfo.userName} sent you a buddy request`            
+            // }
+            // this.subscriptions.push(this.notificationsService.addNotification(buddyRequestNotification).subscribe(res => {
+            //   if(res){
+            //     console.log('buddy request notification successfully created: ', res)
+            //   }
+            // }));
           }
         });
       }

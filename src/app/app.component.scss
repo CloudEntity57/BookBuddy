@@ -1,5 +1,7 @@
 @use 'styles.scss' as styles;
 
+
+
 $navbar-height: 60px;
 $right-controls-spacing: 15px;
 main{
@@ -98,3 +100,48 @@ main{
 .full-appear{
     height: $navbar-height;
 }
+.message-bar-container{
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    // display: inline-block;
+    // width: 350px;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    &-second{
+        width: 80%;
+        z-index: 2;
+    }
+}
+.menu-icon-container{
+    cursor: pointer;
+    margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.menu-icon{
+    color: styles.$tertiary-color;
+    cursor: pointer;
+    font-size: 25px;
+}
+.notification-dot{
+    position: absolute;
+    color: red;
+    font-size: 10px;
+}
+::ng-deep {
+    // .mat-mdc-menu-content{
+    //     background-color: styles.$dropdown-color;
+    //     // height: 40px;
+    //     .mat-mdc-menu-item{
+    //         color: #fff;
+    //     }
+    // }
+    .mat-mdc-menu-panel{
+        // border-radius: 8px;
+        min-width: 200px;
+    }
+}
+

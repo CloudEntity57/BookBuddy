@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
@@ -11,22 +12,29 @@ import { debounceTime, fromEvent, Subscription, throttleTime } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { environment } from '../environments/environment';
 import { ProgressBarService } from './services/progress-bar.service';
+import { MessageBarComponent } from './components/message-bar/message-bar.component';
+import { NotificationService } from './services/notifications/notification.service';
+import { Notification } from './interfaces/notification.interface';
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,
+  imports: [
+    RouterOutlet,
     MatButtonModule,
+    MatIconModule,
     OAuthModule,
     RouterLink,
     MatMenuModule,
     MatProgressBarModule,
-    CommonModule, BookDropdownOptionComponent],
+    CommonModule, 
+    MessageBarComponent,
+    BookDropdownOptionComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService){
   }
   private lastScrollTop = 0;
   title = 'bookbuddy';
@@ -36,6 +44,8 @@ export class AppComponent implements OnInit, OnDestroy{
   public isHovering: boolean = false;
   public closeTimeout: any;
   public isLoading: boolean = false;
+  public unreadNotifications: boolean = false;
+  public notifications: Array<Notification> = [];
 
   ngOnInit(): void {
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe((loggedIn)=>{
@@ -48,6 +58,21 @@ export class AppComponent implements OnInit, OnDestroy{
             // populate the user icon 
             this.userIconURL = userInfo.avatarUrl;
             console.log('user icon url: ', this.userIconURL)
+            if(userInfo && userInfo.id){
+              this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
+                if(res){
+                  console.log('got notifications: ', res)
+                  this.notifications = res;
+                  this.notifications.forEach(notification => {
+                    if(notification.isRead === false){
+                      this.unreadNotifications = true;
+                    }
+                  })
+                }
+              }));            
+            }
+
+
             this.changeDetector.detectChanges();
           })
         })
