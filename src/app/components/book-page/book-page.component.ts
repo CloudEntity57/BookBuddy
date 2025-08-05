@@ -6,7 +6,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, map, Observable, of, Subscription, switchMap, take, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
@@ -43,6 +43,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public userLoggedIn = false;
     public userWantsToRead: boolean = false;
     public userInfo: BookBuddyUser = {} as BookBuddyUser;
+    private $userInitiated = new Subject<void>();
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
     public databaseBook?: DatabaseBook;
     public book!: GoogleBookInfo;
@@ -65,8 +66,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
   ngOnInit(): void {
     console.log('INIT NEW BOOK PAGE')
     this.subscriptions.push(
-      this.authService.userInfo.subscribe(userInfo => {
-        if(userInfo && userInfo.id){
+      this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
+        if(userInfo && userInfo.id && !this.userInfo.id){
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
           this.userLoggedIn = true;
@@ -75,6 +76,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
             next: buddies => this.buddies = buddies,
             error: err => console.log('error retrieving buddies: ', err)
           }));
+          this.$userInitiated.next();
           this.changeDetector?.detectChanges();
           this.processBookData();
         }else{
@@ -83,6 +85,12 @@ export class BookPageComponent implements OnInit, OnDestroy{
         }
       })
     );
+    this.subscriptions.push(this.authService.userInfo.subscribe(userInfo => {
+      if(this.userInfo && this.userInfo.id){
+        this.userInfo = userInfo;
+        this.changeDetector.detectChanges();
+      }
+    }));
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
       if(!login){
         this.restoreToLoggedOutState();
@@ -103,13 +111,13 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userInfo = {} as BookBuddyUser;
   }
 
-  public userReceivedBuddyRequest(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {
+  public buddyRequestSent(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {
     if(!mySentBuddyReqs || !otheruser) return false;
     // console.log(otheruser.userName + ' received a buddy request: ',mySentBuddyReqs.some(myReq => myReq.id == otheruser.id))
     return mySentBuddyReqs.some(req => req.id == otheruser.id);
   }
 
-  public isBuddyRequester(reqs: Array<BookBuddyUser>, user: BookBuddyUser):boolean{
+  public buddyRequestReceived(reqs: Array<BookBuddyUser>, user: BookBuddyUser):boolean{
     if(!reqs || !reqs.length) return false;
     return reqs.some(req => req.id === user.id);
   }

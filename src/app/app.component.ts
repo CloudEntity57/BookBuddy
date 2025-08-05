@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,18 +8,18 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
-import { debounceTime, fromEvent, Subscription, throttleTime } from 'rxjs';
+import { debounceTime, fromEvent, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
-import { environment } from '../environments/environment';
 import { ProgressBarService } from './services/progress-bar.service';
 import { MessageBarComponent } from './components/message-bar/message-bar.component';
 import { NotificationService } from './services/notifications/notification.service';
-import { Notification } from './interfaces/notification.interface';
+import { Notification, NotificationType } from './interfaces/notification.interface';
+import { BookBuddyUser } from './interfaces/user.interface';
 
 
 @Component({
   selector: 'app-root',
-  imports: [
+  imports: [  
     RouterOutlet,
     MatButtonModule,
     MatIconModule,
@@ -33,7 +33,7 @@ import { Notification } from './interfaces/notification.interface';
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit, OnDestroy{
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService){
   }
   private lastScrollTop = 0;
@@ -46,6 +46,8 @@ export class AppComponent implements OnInit, OnDestroy{
   public isLoading: boolean = false;
   public unreadNotifications: boolean = false;
   public notifications: Array<Notification> = [];
+  public user?: BookBuddyUser;
+  private $userReceived = new Subject<void>();
 
   ngOnInit(): void {
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe((loggedIn)=>{
@@ -53,15 +55,18 @@ export class AppComponent implements OnInit, OnDestroy{
         this.isLoggedIn = true;
         this.changeDetector.detectChanges();
         this.authService.initUserInfo().then(() => {
-          this.authService.userInfo.subscribe(userInfo => {
+          this.authService.userInfo.pipe(takeUntil(this.$userReceived)).subscribe(userInfo => {
             console.log('on init db profile: ', userInfo);
+            this.user = userInfo;
             // populate the user icon 
             this.userIconURL = userInfo.avatarUrl;
             console.log('user icon url: ', this.userIconURL)
             if(userInfo && userInfo.id){
+              this.$userReceived.next();
+              // get all current notifications on page load
               this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
                 if(res){
-                  console.log('got notifications: ', res)
+                  console.log('got user notifications from database: ', res)
                   this.notifications = res;
                   this.notifications.forEach(notification => {
                     if(notification.isRead === false){
@@ -69,7 +74,17 @@ export class AppComponent implements OnInit, OnDestroy{
                     }
                   })
                 }
-              }));            
+              }));  
+              // // subscribe to signalR live notifications updates:
+              // this.subscriptions.push(this.notificationsService.latestNotification.subscribe(notification => {
+              //   this.notifications.push(notification);
+              //   this.unreadNotifications = this.notifications.some(n => n.isRead === false);
+              //   switch(notification.type){
+              //     case NotificationType.BuddyRequest: () => {
+              //       this.authService.refreshUserInfo(this.user.id);
+              //     }
+              //   }
+              // }));
             }
 
 
@@ -107,7 +122,11 @@ export class AppComponent implements OnInit, OnDestroy{
     this.subscriptions.push(this.progressBarService.isLoading.subscribe(loading => {
       this.isLoading = loading;
       this.changeDetector.detectChanges();
-    }))
+    }));
+
+
+
+    
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
     //   console.log('scrollend')
     //     const currentScroll = document.documentElement.scrollTop;
@@ -117,6 +136,23 @@ export class AppComponent implements OnInit, OnDestroy{
     // }));
     // const returnUrl = localStorage.getItem('returnUrl') || '';
     //   this.router.navigateByUrl(returnUrl).then(() => localStorage.removeItem('returnUrl'));
+  }
+
+  ngAfterViewInit(): void {
+      // subscribe to signalR live notifications updates:
+      this.subscriptions.push(this.notificationsService.latestNotification.subscribe(notification => {
+        console.log('we got a new notification in app.component.ts: ', notification)
+        this.notifications.push(notification);
+        this.unreadNotifications = this.notifications.some(n => n.isRead === false);
+        switch(notification.type){
+          case NotificationType.BuddyRequest: 
+            //refresh user data across app to update buddy request list
+            console.log('refreshing user data across app to update buddy request list')
+            this.authService.refreshUserInfo(this.user?.id || '');
+          break;
+          default: console.log('no cases match')
+        }
+      }));
   }
 
   public ngOnDestroy(): void {

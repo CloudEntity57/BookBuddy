@@ -5,13 +5,14 @@ import { BehaviorSubject, catchError, filter, map, Observable, throwError } from
 import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, UserAPIResponse } from '../../interfaces/user.interface';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private oAuthService: OAuthService, private http: HttpClient) {
+  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService) {
     this.configure();
   }
 
@@ -35,7 +36,7 @@ export class AuthService {
         customRedirectUri:'http://localhost:4200',
         disableOAuth2StateCheck: true
     }).then(_ => {
-      if(this.oAuthService.hasValidAccessToken()){
+      if(this.oAuthService.hasValidIdToken()){
         console.log('has valid token')
         this.$isLoggedIn.next(true);
       }
@@ -60,6 +61,25 @@ export class AuthService {
     })
   }
 
+  public refreshUserInfo(userId: string): void{
+    this.getUserById(userId).subscribe({
+      next: user => {
+        if(!user){
+          console.log('no user found');
+          return;
+        }
+        this.userInfo.next(user);
+      },
+      error: err => {
+        console.log('error while refreshing user info: ', err);
+      }
+    });
+  }
+
+  public getAccessToken(){
+    return this.oAuthService.getAccessToken();
+  }
+
 
   public async initUserInfo(){
      await this.oAuthService.loadUserProfile().then((user) => {
@@ -71,6 +91,9 @@ export class AuthService {
         next: user => {
           console.log('USER EXISTS IN DB: ', user)
           this.userInfo.next(user);
+          // save user id in session storage
+          sessionStorage.setItem('user_id', user.id);
+          this.notificationService.startConnection();
         },
         error: (err: HttpErrorResponse) => {
           this.newUserLogic(err, userProfile);
@@ -80,7 +103,6 @@ export class AuthService {
       this.userProfile = userProfile;
     });
   }
-
 
   public newUserLogic(err: HttpErrorResponse, userProfile: UserAPIResponse): void{
     if(err.status === 404){
@@ -105,10 +127,15 @@ export class AuthService {
   }
 
   public getUserByEmail(userEmail: string): Observable<BookBuddyUser>{
-    return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/${userEmail}`).pipe(
+    return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/email/${userEmail}`).pipe(
         catchError((error: HttpErrorResponse) => throwError(() => error))
     );
   }
+
+  public getUserById(userId: string): Observable<BookBuddyUser>{
+    return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/id/${userId}`).pipe(
+        catchError((error: HttpErrorResponse) => throwError(() => error))
+    );  }
 
   public saveNewUser(userDto: BookBuddyCreateUser): Observable<BookBuddyUser>{
     return this.http.post<BookBuddyUser>(`${environment.apiUrl}/Users`, userDto).pipe(

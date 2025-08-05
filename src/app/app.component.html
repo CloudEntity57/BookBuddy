@@ -39,6 +39,7 @@
                 <mat-icon *ngIf="unreadNotifications === true" class="notification-dot">circle</mat-icon>
               </div>
               <mat-menu #iconMenu="matMenu">
+                <div *ngFor="let notification of notifications" mat-menu-item>{{notification.message}}</div>
                 <div (click)="logout()" mat-menu-item>Log Out</div>
               </mat-menu>
              </ng-container>
