@@ -1,6 +1,7 @@
 export const environment = {
     production: false,
     apiUrl: 'https://localhost:7092/api',
+    hubsUrl: 'https://localhost:7092/hubs',
     rootUrl: 'http://localhost:4200',
     oauthClientId: '921071488707-kusrp5jrol9g7uekdgqbseqk6c5o8p07.apps.googleusercontent.com',
     books:{
