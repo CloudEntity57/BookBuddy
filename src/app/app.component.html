@@ -13,11 +13,13 @@
         <a routerLink="" class="navbar-brand">BookBuddy</a>
       </span>
         <div class="right-controls">
-            <!-- <input type="text" class="search form-control" placeholder="Search"> -->
-             <app-book-dropdown-option dropdown_type="navbar-search" dropdown_text="Search Books, Authors"></app-book-dropdown-option>
+
+            <!-- Search Bar -->
+            <app-book-dropdown-option dropdown_type="navbar-search" dropdown_text="Search Books, Authors"></app-book-dropdown-option>
+
             <button *ngIf="!isLoggedIn" (click)="login()" mat-raised-button class="login">Log In</button>
-            <!-- <button *ngIf="isLoggedIn" (click)="logout()" mat-raised-button class="login">Log Out</button> -->
-            <!-- <button (click)="checklogin()" mat-raised-button>Check</button> -->
+
+              <!-- User Icon -->
              <ng-container *ngIf="isLoggedIn && userIconURL">
               <div class="user-icon"
                 [style.background-image]="`url(${userIconURL})`"
@@ -30,25 +32,28 @@
                   <div (click)="logout()" mat-menu-item>Log Out</div>
                 </mat-menu>
              </ng-container>
-             <ng-container *ngIf="isLoggedIn">
-              <div class="menu-icon-container" [matMenuTriggerFor]="iconMenu" #menuTrigger="matMenuTrigger">
-                <mat-icon class="menu-icon">menu</mat-icon>
-                <mat-icon *ngIf="unreadNotifications === true" class="notification-dot">circle</mat-icon>
-              </div>
-              <mat-menu #iconMenu="matMenu">
-                <ng-container *ngFor="let notification of notifications">
-                  <ng-container *ngIf="notification.type === NotificationType.BuddyRequest">
-                    <div [matMenuTriggerFor]="buddyRequestMenu" #menuTrigger="matMenuTrigger"  mat-menu-item>{{buddyRequesterName(notification.actorId || '')}} sent you a Buddy Request</div>
-                    <mat-menu  #buddyRequestMenu="matMenu">
-                      <div mat-menu-item>Accept</div>
-                      <div mat-menu-item>Ignore</div>
-                      <div mat-menu-item>Message</div>
-                    </mat-menu>
+
+            <!-- Menu Bar -->
+             <div *ngIf="isLoggedIn" class="menu-icon-container" (click)="handleMenuIconClick()">
+                <div [matMenuTriggerFor]="iconMenu" #menuTrigger="matMenuTrigger">
+                  <mat-icon class="menu-icon">menu</mat-icon>
+                  <mat-icon *ngIf="unreadNotifications === true" class="notification-dot">circle</mat-icon>
+                </div>
+                <mat-menu #iconMenu="matMenu">
+                  <ng-container *ngFor="let notification of notifications">
+                    <ng-container *ngIf="notification.type === NotificationType.BuddyRequest">
+                      <div [matMenuTriggerFor]="buddyRequestMenu" #menuTrigger="matMenuTrigger"  mat-menu-item>{{buddyRequesterName(notification.actorId || '')}} sent you a Buddy Request</div>
+                      <mat-menu  #buddyRequestMenu="matMenu">
+                        <div mat-menu-item (click)="acceptBuddyRequest(notification)">Accept</div>
+                        <div mat-menu-item (click)="ignoreBuddyRequest(notification)">Ignore</div>
+                        <div mat-menu-item (click)="openMessageBar(notification)">Message</div>
+                      </mat-menu>
+                    </ng-container>
                   </ng-container>
-                </ng-container>
-                <div (click)="logout()" mat-menu-item>Log Out</div>
-              </mat-menu>
-             </ng-container>
+                  <div (click)="logout()" mat-menu-item>Log Out</div>
+                </mat-menu>
+            </div>
+
         </div>
     </div>
   </div>

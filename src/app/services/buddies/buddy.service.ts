@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, map, pipe, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BookBuddyCreateRequest, BookBuddyDeleteRequest, BookBuddyUser, CreateBuddyDTO } from '../../interfaces/user.interface';
 import { MatDialog } from '@angular/material/dialog';
@@ -14,6 +14,7 @@ export class BuddyService {
 
   constructor(private http: HttpClient, private progressBarService: ProgressBarService) { }
 
+  public $buddies = new BehaviorSubject<Array<BookBuddyUser>>([]);
 
   public sendBuddyRequest(activeUserID: string, passiveUserID: string, note: string, bookTitle: string): Observable<boolean> {
     const buddyDTO: BookBuddyCreateRequest = {
@@ -41,6 +42,24 @@ export class BuddyService {
       userBId: passiveUserID
     }
     return this.http.post(`${environment.apiUrl}/buddy`, buddyDTO) as Observable<boolean>;
+  }
+
+  public acceptAndCancelBuddyRequest(activeUserID: string, passiveUserID: string):Observable<Array<BookBuddyUser>>{
+    const buddyDTO: CreateBuddyDTO = {
+      userAId: activeUserID,
+      userBId: passiveUserID
+    }
+    return this.http.post(`${environment.apiUrl}/buddy`, buddyDTO).pipe(
+      switchMap(res => {
+        return this.sendCancelBuddyRequest(activeUserID, passiveUserID) as Observable<boolean>;
+      }),
+      switchMap(res => {
+        return this.getBuddies(passiveUserID).pipe(map(res => {
+          this.$buddies.next(res);
+          return res;
+        }))
+      })
+    );
   }
 
   public rejectBuddyRequest(activeUserID: string, passiveUserID: string):Observable<boolean>{

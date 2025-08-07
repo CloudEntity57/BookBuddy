@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CreateNotificationDTO, Notification } from '../../interfaces/notification.interface';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import * as signalR from '@microsoft/signalR';
 import { AuthService } from '../auth/auth.service';
 
@@ -16,6 +16,10 @@ export class NotificationService {
   private hubConnection!: signalR.HubConnection;
 
   public latestNotification = new BehaviorSubject<Notification>({} as Notification);
+
+  public $notifications = new BehaviorSubject<Array<Notification>>([]);
+
+  public $updateNotifications = new Subject<void>();
 
   // private hubConnection: signalR.HubConnection;
 
@@ -57,4 +61,9 @@ export class NotificationService {
   public getUserNotifications(userId: string): Observable<Array<Notification>>{
     return this.http.get(`${environment.apiUrl}/notifications/${userId}`) as Observable<Array<Notification>>;
   }
+
+  public updateNotification(notificationId: string, notification: Notification){
+    return this.http.put(`${environment.apiUrl}/notifications/${notificationId}`, notification);
+  }
+
 }
