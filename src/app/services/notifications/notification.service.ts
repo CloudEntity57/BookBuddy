@@ -41,7 +41,15 @@ export class NotificationService {
       console.log('Received notification:', notification);
       this.latestNotification.next(notification);
       // Trigger observable or Angular service logic here
+      // play notification sound
     });
+  }
+
+  public playNotificationSound(): void{
+    const audio = new Audio();
+    audio.src = 'assets/sounds/new1.mp3';
+    audio.load();
+    audio.play();
   }
 
   public addNotification(notification: CreateNotificationDTO): Observable<Notification>{
