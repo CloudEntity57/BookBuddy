@@ -109,6 +109,7 @@ main{
     position: fixed;
     bottom: 0px;
     left: 0px;
+    overflow-y: visible;
     &-second{
         width: 80%;
         z-index: 2;

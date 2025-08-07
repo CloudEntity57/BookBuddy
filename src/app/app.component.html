@@ -1,12 +1,8 @@
 <div class="message-bar-container">
   <app-message-bar></app-message-bar>
-</div>
-<div class="message-bar-container message-bar-container-second">
   <app-message-bar></app-message-bar>
 </div>
-<div class="message-bar-container third">
-  <app-message-bar></app-message-bar>
-</div>
+
 
 <div class="navbar-buffer"></div>
 <nav class="main-navbar">
@@ -31,6 +27,7 @@
                 <mat-menu class="navbar-dropdown"
                 (mouseleave)="onMouseLeave(menuTrigger)" #userMenu="matMenu">
                   <div mat-menu-item>Manage Profile</div>
+                  <div (click)="logout()" mat-menu-item>Log Out</div>
                 </mat-menu>
              </ng-container>
              <ng-container *ngIf="isLoggedIn">
@@ -39,7 +36,16 @@
                 <mat-icon *ngIf="unreadNotifications === true" class="notification-dot">circle</mat-icon>
               </div>
               <mat-menu #iconMenu="matMenu">
-                <div *ngFor="let notification of notifications" mat-menu-item>{{notification.message}}</div>
+                <ng-container *ngFor="let notification of notifications">
+                  <ng-container *ngIf="notification.type === NotificationType.BuddyRequest">
+                    <div [matMenuTriggerFor]="buddyRequestMenu" #menuTrigger="matMenuTrigger"  mat-menu-item>{{buddyRequesterName(notification.actorId || '')}} sent you a Buddy Request</div>
+                    <mat-menu  #buddyRequestMenu="matMenu">
+                      <div mat-menu-item>Accept</div>
+                      <div mat-menu-item>Ignore</div>
+                      <div mat-menu-item>Message</div>
+                    </mat-menu>
+                  </ng-container>
+                </ng-container>
                 <div (click)="logout()" mat-menu-item>Log Out</div>
               </mat-menu>
              </ng-container>

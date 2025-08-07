@@ -36,6 +36,7 @@ import { BookBuddyUser } from './interfaces/user.interface';
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService){
   }
+  NotificationType = NotificationType;
   private lastScrollTop = 0;
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
@@ -124,8 +125,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       this.changeDetector.detectChanges();
     }));
 
+    this.subscriptions.push(this.authService.userInfo.subscribe(user => {
+      this.user = user
+    }))
 
 
+  
     
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
     //   console.log('scrollend')
@@ -141,7 +146,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   ngAfterViewInit(): void {
       // subscribe to signalR live notifications updates:
       this.subscriptions.push(this.notificationsService.latestNotification.subscribe(notification => {
+        if(!notification.id){
+          return;
+        }
         console.log('we got a new notification in app.component.ts: ', notification)
+        this.notificationsService.playNotificationSound();
         this.notifications.push(notification);
         this.unreadNotifications = this.notifications.some(n => n.isRead === false);
         switch(notification.type){
@@ -159,6 +168,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
   
+  public buddyRequesterName(userId: string): string{
+    const user = this.user?.receivedBuddyRequests.find(user => user.id == userId);
+    return user?.userName || '';
+  }
+
   public dropdownCloseAction(menuTrigger: MatMenuTrigger){
     setTimeout(() => {
       menuTrigger.closeMenu();

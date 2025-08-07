@@ -30,10 +30,11 @@ import { NotificationService } from '../../services/notifications/notification.s
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
-
+    public buddyService: BuddyService;
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private _buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
+      this.buddyService = _buddyService;
     }
-
+    
     public api_type = environment.books.bookByIdApi;
     public requestNote: string = ''
     readonly dialog = inject(MatDialog);
@@ -109,61 +110,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userWantsToRead = false;
     this.userLoggedIn = false;
     this.userInfo = {} as BookBuddyUser;
-  }
-
-  public buddyRequestSent(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {
-    if(!mySentBuddyReqs || !otheruser) return false;
-    // console.log(otheruser.userName + ' received a buddy request: ',mySentBuddyReqs.some(myReq => myReq.id == otheruser.id))
-    return mySentBuddyReqs.some(req => req.id == otheruser.id);
-  }
-
-  public buddyRequestReceived(reqs: Array<BookBuddyUser>, user: BookBuddyUser):boolean{
-    if(!reqs || !reqs.length) return false;
-    return reqs.some(req => req.id === user.id);
-  }
-
-  public isExistingBuddy(userId: string): boolean{
-    return this.buddies.some(user => user.id == userId);
-  }
-
-  public acceptBuddyRequest(requester: BookBuddyUser){
-    this.progressBarService.startProgressBar();
-    this.subscriptions.push(this.buddyService.acceptBuddyRequest(requester.id, this.userInfo.id).pipe(
-      switchMap(res => {
-        return this.buddyService.sendCancelBuddyRequest(requester.id, this.userInfo.id) as Observable<boolean | undefined>;
-      }),
-      switchMap(res => {
-        return this.buddyService.getBuddies(this.userInfo.id);
-      })
-    ).subscribe({
-      next: updatedFriendships => {
-        if(updatedFriendships){
-          console.log('successfully added new buddy, removed buddy request and retrieved latest buddy list');
-          this.updateUser();
-          this.buddies = updatedFriendships;
-          console.log('updated buddies: ', this.buddies);
-          this.progressBarService.stopProgressBar();
-        }
-      },
-      error: err => {
-        console.log('error accepting buddy request: ', err);
-      }
-    }));
-  }
-
-  public rejectBuddyRequest(requester: BookBuddyUser){
-    this.progressBarService.startProgressBar();
-    console.log('rejecting buddy request')
-    if(!requester){
-      console.log('undefined inputs for users ', requester)
-      return;
-    }
-    this.subscriptions.push(this.buddyService.rejectBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
-      if(res) console.log('request ignored');
-      this.updateUser();
-      this.progressBarService.stopProgressBar();
-      this.changeDetector.detectChanges();
-    }))
   }
 
   public messageUser(user: BookBuddyUser): void{
@@ -325,7 +271,26 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }))
   }
 
+  public setUserWantsToRead(created: DatabaseBook): void{
+    console.log('ADDED book to user list - ', created);
+    this.userWantsToRead = true;
+    this.usersWhoWantToRead.push(this.userInfo);
+    this.changeDetector.detectChanges();
+  }
+
+  public updateUser(){
+    console.log('updating user')
+    this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
+      if(!res) return;
+      console.log('res: ', res)
+      this.userInfo = res;
+    }));
+  }
+
+  // BUDDY REQUEST LOGIC:
+
   public sendBuddyRequest(user: BookBuddyUser){
+    this.checkIfLoggedIn();
     console.log('sending buddy request to ', user)
     const activeUserID = this.userInfo.id;
     console.log('active user id: ', activeUserID)
@@ -349,53 +314,86 @@ export class BookPageComponent implements OnInit, OnDestroy{
             console.log('buddy request successfully sent')
             this.updateUser();
             this.progressBarService.stopProgressBar();
-            // const buddyRequestNotification: CreateNotificationDTO = {
-            //   recipientId: passiveUserID,
-            //   actorId: activeUserID,
-            //   type: NotificationType.BuddyRequest,
-            //   isRead: false,
-            //   timestamp: new Date(),
-            //   message: `${this.userInfo.userName} sent you a buddy request`            
-            // }
-            // this.subscriptions.push(this.notificationsService.addNotification(buddyRequestNotification).subscribe(res => {
-            //   if(res){
-            //     console.log('buddy request notification successfully created: ', res)
-            //   }
-            // }));
           }
         });
       }
-    }))
-    
-  }
-
-  public updateUser(){
-    console.log('updating user')
-    this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
-      if(!res) return;
-      console.log('res: ', res)
-      this.userInfo = res;
     }));
   }
+
+  public buddyRequestSent(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {
+    if(!mySentBuddyReqs || !otheruser) return false;
+    // console.log(otheruser.userName + ' received a buddy request: ',mySentBuddyReqs.some(myReq => myReq.id == otheruser.id))
+    return mySentBuddyReqs.some(req => req.id == otheruser.id);
+  }
+
+  public buddyRequestReceived(reqs: Array<BookBuddyUser>, user: BookBuddyUser):boolean{
+    if(!reqs || !reqs.length) return false;
+    return reqs.some(req => req.id === user.id);
+  }
+
+  public isExistingBuddy(userId: string, buddies:Array<BookBuddyUser>): boolean{
+    return buddies.some(user => user.id == userId);
+  }
+
+  public acceptBuddyRequest(requester: BookBuddyUser){
+    this.progressBarService.startProgressBar();
+    this.subscriptions.push(this.buddyService.acceptBuddyRequest(requester.id, this.userInfo.id).pipe(
+      switchMap(res => {
+        return this.buddyService.sendCancelBuddyRequest(requester.id, this.userInfo.id) as Observable<boolean | undefined>;
+      }),
+      switchMap(res => {
+        return this.buddyService.getBuddies(this.userInfo.id);
+      })
+    ).subscribe({
+      next: updatedFriendships => {
+        if(updatedFriendships){
+          console.log('successfully added new buddy, removed buddy request and retrieved latest buddy list');
+          this.updateUser();
+          this.buddies = updatedFriendships;
+          console.log('updated buddies: ', this.buddies);
+          this.progressBarService.stopProgressBar();
+        }
+      },
+      error: err => {
+        console.log('error accepting buddy request: ', err);
+      }
+    }));
+  }
+
+  public rejectBuddyRequest(requester: BookBuddyUser){
+    this.progressBarService.startProgressBar();
+    console.log('rejecting buddy request')
+    if(!requester){
+      console.log('undefined inputs for users ', requester)
+      return;
+    }
+    this.subscriptions.push(this.buddyService.rejectBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
+      if(res) console.log('request ignored');
+      this.updateUser();
+      this.progressBarService.stopProgressBar();
+      this.changeDetector.detectChanges();
+    }))
+  }
+
   public cancelBuddyRequest(user: BookBuddyUser){
     this.progressBarService.startProgressBar();
     console.log('canceling buddy request');
     const activeUserID = this.userInfo.id;
     const passiveUserID = user.id;
-    this.subscriptions.push(this.buddyService.sendCancelBuddyRequest(activeUserID,passiveUserID).subscribe(res => {
-      if(res){
-        console.log('buddy request successfully cancelled');
-        this.updateUser();
-        this.progressBarService.stopProgressBar();
+    this.subscriptions.push(this.buddyService.sendCancelBuddyRequest(activeUserID,passiveUserID).subscribe({
+      next: res => {
+        if(res){
+          console.log('buddy request successfully cancelled');
+          this.updateUser();
+          this.progressBarService.stopProgressBar();
+        }
+      },
+      error: err => {
+        if(err.status === 404){
+          return;
+        }
       }
     }));
-  }
-
-  public setUserWantsToRead(created: DatabaseBook): void{
-    console.log('ADDED book to user list - ', created);
-    this.userWantsToRead = true;
-    this.usersWhoWantToRead.push(this.userInfo);
-    this.changeDetector.detectChanges();
   }
 
 }

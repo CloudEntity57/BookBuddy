@@ -1,10 +1,13 @@
 @use "/styles.scss" as styles;
 
-.message-bar{
-    // position: fixed;
-    // bottom: 0px;
-    // right: 20px;
+.vert-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+}
 
+.message-bar{
    margin-right:30px;
     width: 200px;
     height: 40px;

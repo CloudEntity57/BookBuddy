@@ -96,7 +96,9 @@ export class AuthService {
           this.notificationService.startConnection();
         },
         error: (err: HttpErrorResponse) => {
-          this.newUserLogic(err, userProfile);
+          if(err.status == 404){
+            this.newUserLogic(err, userProfile);
+          }
         }
 
       });

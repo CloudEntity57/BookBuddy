@@ -7,12 +7,11 @@ import { ChangeDetectorRef, Component } from '@angular/core';
   styleUrl: './message-bar.component.scss'
 })
 export class MessageBarComponent {
-  constructor(private changeDetector: ChangeDetectorRef){}
+  constructor(){}
   public isOpen: boolean = false;
   public toggleBar(isOpen: boolean): void {
     if(!isOpen){
       this.isOpen = true;
-      // this.changeDetector.detectChanges();
     }else{
       this.isOpen = false;
     }
