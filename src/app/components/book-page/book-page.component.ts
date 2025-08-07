@@ -30,9 +30,7 @@ import { NotificationService } from '../../services/notifications/notification.s
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    public buddyService: BuddyService;
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private _buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
-      this.buddyService = _buddyService;
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
     }
     
     public api_type = environment.books.bookByIdApi;
@@ -66,6 +64,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
   ngOnInit(): void {
     console.log('INIT NEW BOOK PAGE')
+    this.progressBarService.startProgressBar();
     this.subscriptions.push(
       this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
         if(userInfo && userInfo.id && !this.userInfo.id){
@@ -74,8 +73,13 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.userLoggedIn = true;
           // retrieve buddy list
           this.subscriptions.push(this.buddyService.getBuddies(this.userInfo.id).subscribe({
-            next: buddies => this.buddies = buddies,
-            error: err => console.log('error retrieving buddies: ', err)
+            next: buddies => {
+              this.buddies = buddies;
+              this.progressBarService.stopProgressBar();
+            },
+            error: err => {
+              console.log('error retrieving buddies: ', err)
+            }
           }));
           this.$userInitiated.next();
           this.changeDetector?.detectChanges();
@@ -159,6 +163,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
                 }else{
                   console.log('user not logged in')
                 }
+                // this.progressBarService.stopProgressBar();
               }));
               this.changeDetector?.detectChanges();
       }));

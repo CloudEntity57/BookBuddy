@@ -40,8 +40,6 @@ export class NotificationService {
     this.hubConnection.on('NewNotification', (notification: Notification) => {
       console.log('Received notification:', notification);
       this.latestNotification.next(notification);
-      // Trigger observable or Angular service logic here
-      // play notification sound
     });
   }
 

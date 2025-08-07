@@ -11,19 +11,9 @@ import { ProgressBarService } from '../progress-bar.service';
   providedIn: 'root'
 })
 export class BuddyService {
-  readonly dialog = inject(MatDialog);
-
 
   constructor(private http: HttpClient, private progressBarService: ProgressBarService) { }
 
-  public dialogTest(){
-        const dialogRef = this.dialog.open(BuddyRequestDialogComponent, {
-          data: {
-            name: "Josh",
-            requestNote: "Sup"
-          }
-        });
-  }
 
   public sendBuddyRequest(activeUserID: string, passiveUserID: string, note: string, bookTitle: string): Observable<boolean> {
     const buddyDTO: BookBuddyCreateRequest = {
