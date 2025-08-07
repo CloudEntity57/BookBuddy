@@ -15,6 +15,7 @@ import { MessageBarComponent } from './components/message-bar/message-bar.compon
 import { NotificationService } from './services/notifications/notification.service';
 import { Notification, NotificationType } from './interfaces/notification.interface';
 import { BookBuddyUser } from './interfaces/user.interface';
+import { BuddyService } from './services/buddies/buddy.service';
 
 
 @Component({
@@ -34,7 +35,7 @@ import { BookBuddyUser } from './interfaces/user.interface';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService){
   }
   NotificationType = NotificationType;
   private lastScrollTop = 0;
@@ -129,7 +130,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       this.user = user
     }))
 
+    this.updateNotifications();
 
+    this.listenForNotifications();
   
     
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
@@ -164,6 +167,40 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       }));
   }
 
+  public listenForNotifications(): void{
+    this.subscriptions.push(this.notificationsService.$updateNotifications.subscribe(() => {
+      console.log('update notifications in application.js triggered')
+      this.updateNotifications();
+    }))
+  }
+
+  public updateNotifications(): void{
+    this.subscriptions.push(this.notificationsService.$notifications.subscribe({
+      next: notifications =>{
+        this.notifications = notifications;
+        this.changeDetector.detectChanges();
+      },
+      error: err => console.log('error updating notifications: ', err)
+    }));
+  }
+
+  public handleMenuIconClick(){
+    // call API to update all notifications to 'read' status
+    if(this.notifications.some(n => n.isRead === false)){
+      this.notifications.forEach(notification => {
+        notification.isRead = true;
+        this.subscriptions.push(this.notificationsService.updateNotification(notification.id, notification).subscribe({
+          next: newNotification => {
+            console.log('notification updated as read');
+            this.unreadNotifications = false;
+            this.changeDetector.detectChanges();
+          },
+          error: err => console.log('error updating notification: ', err)
+        }));
+      })    
+    }
+  }
+
   public ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
@@ -195,5 +232,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public logout(){
     this.authService.logout();
+  }
+
+  public acceptBuddyRequest(notification: Notification){
+    this.subscriptions.push(this.buddyService.acceptAndCancelBuddyRequest(notification.actorId || '', notification.recipientId).subscribe({
+      next: res => {
+        console.log('accepted buddy request and canceled the request');
+      },
+      error: err => console.log('error accepting buddy request')
+    }));
+  }
+  public ignoreBuddyRequest(notification: Notification){
+
+  }
+  public openMessageBar(notification: Notification){
+
   }
 }
