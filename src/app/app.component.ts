@@ -70,11 +70,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
                 if(res){
                   console.log('got user notifications from database: ', res)
                   this.notifications = res;
-                  this.notifications.forEach(notification => {
-                    if(notification.isRead === false){
-                      this.unreadNotifications = true;
-                    }
-                  })
+                  this.checkForUnreadNotifications()
                 }
               }));  
               // // subscribe to signalR live notifications updates:
@@ -130,9 +126,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       this.user = user
     }))
 
-    this.updateNotifications();
+    this.subscribeToGlobalNotificationsUpdates();
 
-    this.listenForNotifications();
+    this.subscribeToGlobalNotificationsUpdateTrigger();
   
     
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
@@ -167,17 +163,35 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       }));
   }
 
-  public listenForNotifications(): void{
+  public checkForUnreadNotifications(){
+    this.unreadNotifications = false;
+    this.notifications.forEach(notification => {
+      if(notification.isRead === false){
+        this.unreadNotifications = true;
+      }
+    })
+  }
+
+  public subscribeToGlobalNotificationsUpdateTrigger(): void{
     this.subscriptions.push(this.notificationsService.$updateNotifications.subscribe(() => {
       console.log('update notifications in application.js triggered')
-      this.updateNotifications();
+      this.subscriptions.push(this.notificationsService.getUserNotifications(this.user?.id || '').subscribe({
+        next: notifications =>{
+          this.notifications = notifications;
+          this.checkForUnreadNotifications();
+          this.changeDetector.detectChanges();
+        },
+        error: err => console.log('error getting notifications from api: ', err)
+      }));
+      // this.subscribeToGlobalNotificationsUpdates();
     }))
   }
 
-  public updateNotifications(): void{
+  public subscribeToGlobalNotificationsUpdates(): void{
     this.subscriptions.push(this.notificationsService.$notifications.subscribe({
       next: notifications =>{
         this.notifications = notifications;
+        this.checkForUnreadNotifications();
         this.changeDetector.detectChanges();
       },
       error: err => console.log('error updating notifications: ', err)

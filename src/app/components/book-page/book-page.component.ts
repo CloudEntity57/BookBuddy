@@ -64,10 +64,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
   ngOnInit(): void {
     console.log('INIT NEW BOOK PAGE')
-    this.progressBarService.startProgressBar();
     this.subscriptions.push(
       this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
         if(userInfo && userInfo.id && !this.userInfo.id){
+        this.progressBarService.startProgressBar();
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
           this.userLoggedIn = true;
@@ -85,7 +85,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.changeDetector?.detectChanges();
           this.processBookData();
         }else{
-          this.restoreToLoggedOutState();
+          this.resetPageDefaults();
           this.changeDetector?.detectChanges();
         }
       })
@@ -98,7 +98,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }));
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
       if(!login){
-        this.restoreToLoggedOutState();
+        this.resetPageDefaults();
         this.changeDetector?.detectChanges();
       }
     }));
@@ -115,7 +115,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
 
   }
 
-  public restoreToLoggedOutState(): void {
+  public resetPageDefaults(): void {
     this.userWantsToRead = false;
     this.userLoggedIn = false;
     this.userInfo = {} as BookBuddyUser;
@@ -298,6 +298,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }));
   }
 
+  public notificationsGlobalRefresh(){
+    this.notificationsService.$updateNotifications.next();
+  }
+
   // BUDDY REQUEST LOGIC:
 
   public sendBuddyRequest(user: BookBuddyUser){
@@ -353,6 +357,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         if(updatedFriendships){
           console.log('successfully added new buddy, removed buddy request and retrieved latest buddy list');
           this.updateUser();
+          this.notificationsGlobalRefresh();
           this.buddies = updatedFriendships;
           console.log('updated buddies: ', this.buddies);
           this.progressBarService.stopProgressBar();
@@ -364,9 +369,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }));
   }
 
-  public rejectBuddyRequest(requester: BookBuddyUser){
+  public ignoreBuddyRequest(requester: BookBuddyUser){
     this.progressBarService.startProgressBar();
-    console.log('rejecting buddy request')
+    console.log('ignoring buddy request')
     if(!requester){
       console.log('undefined inputs for users ', requester)
       return;
@@ -374,7 +379,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.subscriptions.push(this.buddyService.rejectBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
       if(res) console.log('request ignored');
       this.updateUser();
-      this.notificationsService.$updateNotifications.next();
+      this.notificationsGlobalRefresh();
       this.progressBarService.stopProgressBar();
       this.changeDetector.detectChanges();
     }))
