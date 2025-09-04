@@ -9,20 +9,6 @@
 
         <div class="message-area-container">
             <div #scrollContainer class="message-area">
-                <div class="message-container">
-                    <div class="message message-buddy">
-                        <div class="message-header">
-                            <span class="message-avatar" [style.background-image]="`url('../../../assets/images/emma2_cropped.png')`"></span>
-                            Yacintha
-                        </div>
-                        I don't think Plato meant that there are immutable forms physically in existence.
-                    </div>
-                </div>
-                <div class="message-container">
-                    <div class="message message-user">
-                        So what does Plato mean then?
-                    </div>
-                </div>
                 <div *ngFor="let message of conversation.messages" class="message-container">
                     <div class="message" [class.message-user]="message.senderId === userInfo.id" [class.message-buddy]="message.senderId !== userInfo.id">
                         <!-- <div *ngIf="message.senderId !== userInfo.id" class="message-header"> -->

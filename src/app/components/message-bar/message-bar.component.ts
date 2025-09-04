@@ -4,7 +4,6 @@ import { BookBuddyUser } from '../../interfaces/user.interface';
 import { UserService } from '../../services/user/user.service';
 import { Subscription } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
-import { ExpandableTextareaComponent } from "../expandable-textarea/expandable-textarea";
 import { MatIconModule } from '@angular/material/icon';
 import { MessageService } from '../../services/messages/message.service';
 import { AddMessageDTO, MessageDTO } from '../../interfaces/message.interface';
@@ -13,7 +12,6 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-message-bar',
   imports: [
-    ExpandableTextareaComponent,
     MatIconModule,
     CommonModule],
   templateUrl: './message-bar.component.html',
