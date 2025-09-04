@@ -1,5 +1,8 @@
 @use "/styles.scss" as styles;
 
+$closed-width: 200px;
+$opened-width: 400px;
+$opened-height: 450px;
 .vert-container{
     display: flex;
     flex-direction: column;
@@ -7,33 +10,14 @@
     height: 100%;
 }
 
-.message-bar{
-   margin-right:30px;
-    width: 200px;
-    height: 40px;
-    background-color: styles.$main-color;
-    border-radius: 5px 5px 0px 0px;
-    overflow: hidden;
-    color: #000;
-    transition: all .2s;
-    &-opened{
-        height: 300px;
-        width: 300px;
-        background-color: styles.$main-color;
-        transition: all .2s;
-        margin-right: 30px;
-        border-radius: 5px 5px 0px 0px;
-        overflow: hidden;
-    }
-}
-
-
 .messagebar-title-text{
     cursor: pointer;
     display: flex;
     justify-content: space-around;
     height: 40px;
     background-color: styles.$action-color;
+    position:fixed;
+    z-index: 1;
     .vertical-center{
         background-color: inherit;
         height: inherit;
@@ -41,4 +25,161 @@
         flex-direction: column; 
         justify-content: center;
     }
+    .close-icon{
+        position: absolute;
+        right: 10px;
+    }
 }
+
+
+.message-bar{
+    position: relative;
+    margin-right:30px;
+    width: $closed-width;
+    height: 40px;
+    background-color: styles.$main-color;
+    border-radius: 5px 5px 0px 0px;
+    overflow: hidden;
+    color: #000;
+    transition: all .2s;
+    .messagebar-title-text{
+        width: $closed-width;
+        z-index: 1;
+    }
+    &-opened{
+        position: relative;
+        height: $opened-height;
+        width: $opened-width;
+        background-color: styles.$main-color;
+        transition: all .2s;
+        margin-right: 30px;
+        border-radius: 5px 5px 0px 0px;
+        overflow: hidden;
+        .messagebar-title-text{
+            width: $opened-width;
+        }
+    }
+}
+.message-header{
+    font-size: 12px;
+}
+
+.message-avatar{
+    display: inline-block;
+    background-size: cover;
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+}
+
+
+.message-area-container{
+    position: absolute;
+    bottom: 0px;
+    width: $opened-width;
+    padding-bottom: 5px;
+    // display: flex;
+    // justify-content: center;
+    // padding: 5px 5px 20px 5px;
+}
+
+.message-area{
+    max-height: $opened-height;
+    overflow-y: auto;
+    padding: 10px 20px;
+    color: styles.$tertiary-color;
+    scrollbar-color: styles.$secondary-color styles.$main-color;
+    // background-color: #434343;
+}
+
+.text-area-container{
+    display: flex;
+    justify-content: center;
+    // padding-top: 5px;
+    padding: 10px 5px 5px 5px;
+}
+.text-area{
+    min-height: 20px;
+    width: 90%;
+    background-color: styles.$tertiary-color;
+    border-radius: 25px;
+    padding: 8px;
+    outline: none;
+    font-size: 16px;
+    line-height: 1.3;
+    white-space: pre-wrap; /* Preserve line breaks */
+    word-wrap: break-word;
+    text-rendering: auto;
+    // color: fieldtext;
+    letter-spacing: normal;
+    word-spacing: normal;
+    line-height: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    // display: inline-block;
+    text-align: start;
+    appearance: auto;
+    -webkit-rtl-ordering: logical;
+    cursor: text;
+    // background-color: field;
+    margin: 0em 0em 0em 0em;
+    border-width: 2px;
+    border-style: inset;
+    max-height: $opened-height;
+    overflow-y: auto;
+    border-color: light-dark(rgb(118, 118, 118), rgb(133, 133, 133));
+    &:empty::before {
+      content: attr(data-placeholder);
+      color: #999;
+      pointer-events: none;
+      position: absolute;
+    }
+    scrollbar-color: rgb(133, 133, 133) styles.$tertiary-color;
+}
+
+.textarea-text{
+    width: 90%;
+    background-color: styles.$tertiary-color;
+    border-radius: 25px;
+    padding: 8px;
+    outline: none;
+    font-size: 16px;
+    line-height: 1.3;
+    font-family: inherit;
+    scrollbar-color: styles.$secondary-color styles.$main-color;
+    // scrollbar-width: thin !important;
+}
+
+.message{
+    position: relative;
+    width: 80%;
+    color: #000;
+    padding: 8px;
+    border-radius: 5px;
+    margin-top: 15px;
+    &-user{
+        background-color: #bfcef3;
+        float: right;
+    }
+    &-buddy{
+        background-color: styles.$tertiary-color;
+        float: left;
+    }
+}
+.message-timestamp{
+    font-size: 10px;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+}
+
+:ng-deep{
+::-webkit-scrollbar-track {
+  background: transparent; /* Ensure the track is transparent */
+  border-radius: 25px !important; /* Match the border-radius of the thumb */
+}
+}
+
+
+

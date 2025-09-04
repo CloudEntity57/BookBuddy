@@ -5,15 +5,16 @@ import { CreateNotificationDTO, Notification } from '../../interfaces/notificati
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import * as signalR from '@microsoft/signalR';
 import { AuthService } from '../auth/auth.service';
+import { SignalRService } from '../signalR/signal-r.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private signalRService: SignalRService) { }
 
-  private hubConnection!: signalR.HubConnection;
+  // private hubConnection!: signalR.HubConnection;
 
   public latestNotification = new BehaviorSubject<Notification>({} as Notification);
 
@@ -23,25 +24,32 @@ export class NotificationService {
 
   // private hubConnection: signalR.HubConnection;
 
-  public startConnection(): void {
+  // public startConnection(): void {
 
-    const token = sessionStorage.getItem('id_token');
-    console.log('setting access token in signalR: ', token)
+  //   const token = sessionStorage.getItem('id_token');
+  //   console.log('setting access token in signalR: ', token)
     
-    this.hubConnection = new signalR.HubConnectionBuilder()
-    .withUrl(`https://localhost:7092/hubs/notifications`,{
-      accessTokenFactory: () => token || 'nothing',
-      transport: signalR.HttpTransportType.WebSockets,
-     withCredentials: true  // this must match backend's AllowCredentials()
-    })
-      // accessTokenFactory: () => sessionStorage.getItem('access_token') || 'nada'})
-    .withAutomaticReconnect()
-    .build();
-    this.hubConnection
-    .start()
-    .then(() => console.log('SignalR connection started using access token ', sessionStorage.getItem('id_token')))
-    .catch(err => console.log('SignalR connection error: ', err));  
-    this.hubConnection.on('NewNotification', (notification: Notification) => {
+  //   this.hubConnection = new signalR.HubConnectionBuilder()
+  //   .withUrl(`https://localhost:7092/hubs/notifications`,{
+  //     accessTokenFactory: () => token || 'nothing',
+  //     transport: signalR.HttpTransportType.WebSockets,
+  //    withCredentials: true  // this must match backend's AllowCredentials()
+  //   })
+  //     // accessTokenFactory: () => sessionStorage.getItem('access_token') || 'nada'})
+  //   .withAutomaticReconnect()
+  //   .build();
+  //   this.hubConnection
+  //   .start()
+  //   .then(() => console.log('SignalR connection started using access token ', sessionStorage.getItem('id_token')))
+  //   .catch(err => console.log('SignalR connection error: ', err));  
+  //   this.hubConnection.on('NewNotification', (notification: Notification) => {
+  //     console.log('Received notification:', notification);
+  //     this.latestNotification.next(notification);
+  //   });
+  // }
+
+  public listenForSignalRConnection(){
+    this.signalRService.hubConnection.on('NewNotification', (notification: Notification) => {
       console.log('Received notification:', notification);
       this.latestNotification.next(notification);
     });

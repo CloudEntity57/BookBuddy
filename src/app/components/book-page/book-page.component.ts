@@ -6,7 +6,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, map, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { catchError, concatMap, forkJoin, from, map, mergeMap, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
@@ -18,9 +18,12 @@ import { ProgressBarService } from '../../services/progress-bar.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { MessageBarComponent } from "../message-bar/message-bar.component";
 import { NotificationService } from '../../services/notifications/notification.service';
+import { MessageService } from '../../services/messages/message.service';
+import { Conversation, ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 @Component({
   selector: 'app-book-page',
-  imports: [DatePipe,
+  imports: [
+    DatePipe,
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
@@ -30,7 +33,7 @@ import { NotificationService } from '../../services/notifications/notification.s
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private changeDetector: ChangeDetectorRef){
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private changeDetector: ChangeDetectorRef){
     }
     
     public api_type = environment.books.bookByIdApi;
@@ -121,10 +124,69 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userInfo = {} as BookBuddyUser;
   }
 
-  public messageUser(user: BookBuddyUser): void{
+  public initiateMessaging(user: BookBuddyUser): void{
+    this.progressBarService.startProgressBar();
     console.log('messaging user ', user)
+    const user1 = this.userInfo;
+    const user2 = user;
+
+    this.subscriptions.push(this.messageService.checkExistingConversation(user1.id, user2.id)
+      .subscribe({
+        next: (conversation) => {
+          // Conversation exists → navigate to chat screen
+          console.log('Existing conversation found:', conversation);
+          this.messageService.conversationToStage.next(conversation);
+          this.progressBarService.stopProgressBar();
+        },
+        error: (err) => {
+          if (err.status === 404) {
+            console.log('no existing conversation found. Creating new conversation')
+            // No conversation exists → create one
+            this.createNewConversation(user1, user2)
+          }
+          if (err.status === 500){
+            console.log('internal error: ', err.error)
+          }
+        }
+      }));
   }
 
+  public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
+    const newConversation: CreateConversationDto = {
+      name: `Message between ${user1.userName} and ${user2.userName}`,
+      isGroup: false,
+    };
+
+    this.subscriptions.push(this.messageService.createConversation(newConversation).pipe(
+      switchMap((conv) => {
+        // if(conv && conv.id){
+          const addFirst = this.addUserToConversation(user1, conv.id);
+          const addSecond = this.addUserToConversation(user2, conv.id);
+          return forkJoin([addFirst, addSecond, of(conv)]);
+        // }
+      })
+    ).subscribe({
+      next: ([firstResp, secondResp, conv]) => {
+        console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
+        // Navigate to chat
+        this.messageService.conversationToStage.next(conv);
+        this.progressBarService.stopProgressBar();
+      },
+      error: (error) => {
+        console.log(error);
+        this.progressBarService.stopProgressBar();
+      }
+    }));
+  }
+
+  public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
+    const newMember: ConversationMember = {
+      userName: user.userName,
+      userId: user.id,
+      conversationId
+    }
+    return this.messageService.addConversationMember(newMember);
+  }
 
   public processBookData(){
     this.route.queryParams.subscribe(params => {

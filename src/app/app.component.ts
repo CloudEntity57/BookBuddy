@@ -16,6 +16,10 @@ import { NotificationService } from './services/notifications/notification.servi
 import { Notification, NotificationType } from './interfaces/notification.interface';
 import { BookBuddyUser } from './interfaces/user.interface';
 import { BuddyService } from './services/buddies/buddy.service';
+import { Conversation } from './interfaces/conversation.interface';
+import { MessageService } from './services/messages/message.service';
+import { SignalRService } from './services/signalR/signal-r.service';
+import { MessageDTO } from './interfaces/message.interface';
 
 
 @Component({
@@ -35,7 +39,7 @@ import { BuddyService } from './services/buddies/buddy.service';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService){
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
   }
   NotificationType = NotificationType;
   private lastScrollTop = 0;
@@ -48,7 +52,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public isLoading: boolean = false;
   public unreadNotifications: boolean = false;
   public notifications: Array<Notification> = [];
-  public user?: BookBuddyUser;
+  public user!: BookBuddyUser;
+  public activeConversations: Array<Conversation> = [];
+  public latestMessages: any = {};
   private $userReceived = new Subject<void>();
 
   ngOnInit(): void {
@@ -73,16 +79,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
                   this.checkForUnreadNotifications()
                 }
               }));  
-              // // subscribe to signalR live notifications updates:
-              // this.subscriptions.push(this.notificationsService.latestNotification.subscribe(notification => {
-              //   this.notifications.push(notification);
-              //   this.unreadNotifications = this.notifications.some(n => n.isRead === false);
-              //   switch(notification.type){
-              //     case NotificationType.BuddyRequest: () => {
-              //       this.authService.refreshUserInfo(this.user.id);
-              //     }
-              //   }
-              // }));
             }
 
 
@@ -129,6 +125,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.subscribeToGlobalNotificationsUpdates();
 
     this.subscribeToGlobalNotificationsUpdateTrigger();
+
+    this.listenForConversationsToStage();
   
     
     // this.subscriptions.push(fromEvent(window,'scrollend').subscribe(()=>{
@@ -185,6 +183,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       }));
       // this.subscribeToGlobalNotificationsUpdates();
     }))
+  }
+
+  public listenForConversationsToStage(): void{
+    this.subscriptions.push(this.messageService.conversationToStage.subscribe(conv => {
+      console.log('got a new conversation')
+      if(conv) this.openMessageBar(conv);
+
+    }));
   }
 
   public subscribeToGlobalNotificationsUpdates(): void{
@@ -259,7 +265,35 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public ignoreBuddyRequest(notification: Notification){
 
   }
-  public openMessageBar(notification: Notification){
+  public initiateMessaging(notification: Notification){
 
   }
+
+  public async openMessageBar(conversation: Conversation){
+    console.log('opening message bar with ', conversation, ' and user ', this.user)
+    console.log('active conversations: ', this.activeConversations)
+    await this.signalRService.hubConnection.invoke("JoinConversation", conversation.id);
+    this.latestMessages[conversation.id] = null;
+    this.signalRService.hubConnection.on("ConversationUpdated", newMessage => {
+      newMessage = newMessage as MessageDTO;
+      console.log(`got a new message - ${newMessage.content}`)
+      this.messageService.sendMessage(newMessage.conversationId, newMessage);
+      // this.activeConversations.find(conv => conv.id === newMessage.conversationId)?.messages.push(newMessage);
+      // this.latestConversationUpdated = conversation.id;
+      // const targetConversationIndex = newActiveConversations.indexOf(targetConversation);
+      // targetConversation.messages.push(newMessage);
+      // newActiveConversations.splice(targetConversationIndex,1);
+      // newActiveConversations.push(targetConversation);
+      // this.activeConversations = newActiveConversations;
+      // this.changeDetector.detectChanges();
+    });
+    this.activeConversations.push(conversation);
+    this.changeDetector.detectChanges();
+  }
+  public async closeConversation(conversation: Conversation){
+    await this.signalRService.hubConnection.invoke("LeaveConversation", conversation.id);
+    this.activeConversations = this.activeConversations.filter(conv => {
+      return conv != conversation;
+    });
+  } 
 }

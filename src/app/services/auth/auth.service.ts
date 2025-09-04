@@ -6,13 +6,14 @@ import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, UserAPIResponse } from 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { NotificationService } from '../notifications/notification.service';
+import { SignalRService } from '../signalR/signal-r.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService) {
+  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private signalRService: SignalRService) {
     this.configure();
   }
 
@@ -93,7 +94,9 @@ export class AuthService {
           this.userInfo.next(user);
           // save user id in session storage
           sessionStorage.setItem('user_id', user.id);
-          this.notificationService.startConnection();
+          // this.notificationService.startConnection();
+          this.signalRService.startConnection();
+          this.notificationService.listenForSignalRConnection();
         },
         error: (err: HttpErrorResponse) => {
           if(err.status == 404){
