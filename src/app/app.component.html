@@ -1,6 +1,8 @@
-<div class="message-bar-container">
-  <app-message-bar></app-message-bar>
-</div>
+<!-- <ng-container *ngIf="user as u"> -->
+  <div class="message-bar-container">
+    <app-message-bar *ngFor="let conversation of activeConversations" [userInfo]="user" [latestMessage]="latestConversationUpdated" [conversation]="conversation" (close)="closeConversation(conversation)"></app-message-bar>
+  </div>
+<!-- </ng-container> -->
 
 
 <div class="navbar-buffer"></div>
@@ -45,7 +47,7 @@
                       <mat-menu  #buddyRequestMenu="matMenu">
                         <div mat-menu-item (click)="acceptBuddyRequest(notification)">Accept</div>
                         <div mat-menu-item (click)="ignoreBuddyRequest(notification)">Ignore</div>
-                        <div mat-menu-item (click)="openMessageBar(notification)">Message</div>
+                        <div mat-menu-item (click)="initiateMessaging(notification)">Message</div>
                       </mat-menu>
                     </ng-container>
                   </ng-container>

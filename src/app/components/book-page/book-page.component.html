@@ -36,11 +36,11 @@
                     <mat-menu class="buddy-accept-menu" #buddyMenu="matMenu">
                         <button class="menu-button" (click)="acceptBuddyRequest(user)" mat-menu-item>Accept Request</button>
                         <button class="menu-button" (click)="ignoreBuddyRequest(user)" mat-menu-item>Ignore</button>
-                        <button class="menu-button" (click)="messageUser(user)" mat-menu-item>Message</button>
+                        <button class="menu-button" (click)="initiateMessaging(user)" mat-menu-item>Message</button>
                     </mat-menu>
                     
                     <!-- message an existing buddy -->
-                    <span *ngIf="(user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="messageUser(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
+                    <span *ngIf="(user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="initiateMessaging(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
 
                  </div>
                 <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>

@@ -2,8 +2,53 @@
     <div [class.message-bar]="!isOpen" [class.message-bar-opened]="isOpen">
         <div (click)="toggleBar(isOpen)" class="messagebar-title-text">
             <div class="vertical-center">
-                Message to User
+                {{ conversationName }}
             </div>
+            <mat-icon (click)="closeConversation()" class="vertical-center close-icon">close</mat-icon>
+        </div>
+
+        <div class="message-area-container">
+            <div #scrollContainer class="message-area">
+                <div class="message-container">
+                    <div class="message message-buddy">
+                        <div class="message-header">
+                            <span class="message-avatar" [style.background-image]="`url('../../../assets/images/emma2_cropped.png')`"></span>
+                            Yacintha
+                        </div>
+                        I don't think Plato meant that there are immutable forms physically in existence.
+                    </div>
+                </div>
+                <div class="message-container">
+                    <div class="message message-user">
+                        So what does Plato mean then?
+                    </div>
+                </div>
+                <div *ngFor="let message of conversation.messages" class="message-container">
+                    <div class="message" [class.message-user]="message.senderId === userInfo.id" [class.message-buddy]="message.senderId !== userInfo.id">
+                        <!-- <div *ngIf="message.senderId !== userInfo.id" class="message-header"> -->
+                        <div *ngIf="displayUserMessageInfo(conversation.messages, message)" class="message-header">
+                            <span class="message-avatar" [style.background-image]="`url(${buddyAvatarUrl(message)})`"></span>
+                            {{buddyName(message)}}
+                        </div>
+                        {{message.content}} <span class="message-timestamp">{{messageTime(message)}}</span>  
+                    </div>
+                </div>
+            </div> 
+            <div class="text-area-container">
+                <div 
+                    id="message-text"
+                    class="text-area"
+                    contenteditable="true"
+                    role="textbox"
+                    [attr.data-placeholder]="placeholder"
+                    aria-multiline="false"
+                    (keydown)="handleKeydown($event)">
+                </div>
+                <!-- <textarea matInput class="textarea-text" placeholder="Aa"></textarea> -->
+                <!-- <app-expandable-textarea
+                    (enterPressed)="onEnterPressed($event)"
+                ></app-expandable-textarea> -->
+            </div>           
         </div>
     </div>
 </div>

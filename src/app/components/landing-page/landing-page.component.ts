@@ -42,6 +42,7 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
       book_search: ['']
     })
     this.listenForSearchChanges();
+    
   }
 
   public listenForSearchChanges(): void{

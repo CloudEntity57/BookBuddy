@@ -3,9 +3,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
-import { env } from 'process';
-import { Data } from '@angular/router';
-import { BookBuddyUser } from '../../interfaces/user.interface';
 
 
 @Injectable({
