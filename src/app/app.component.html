@@ -1,6 +1,6 @@
 <!-- <ng-container *ngIf="user as u"> -->
   <div class="message-bar-container">
-    <app-message-bar *ngFor="let conversation of activeConversations" [userInfo]="user" [latestMessage]="latestConversationUpdated" [conversation]="conversation" (close)="closeConversation(conversation)"></app-message-bar>
+    <app-message-bar *ngFor="let conversation of activeConversations" [userInfo]="user" [conversation]="conversation" (close)="closeConversation(conversation)"></app-message-bar>
   </div>
 <!-- </ng-container> -->
 

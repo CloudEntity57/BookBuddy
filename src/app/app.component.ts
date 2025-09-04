@@ -56,7 +56,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public activeConversations: Array<Conversation> = [];
   public latestMessages: any = {};
   private $userReceived = new Subject<void>();
-  public latestConversationUpdated: string = '';
 
   ngOnInit(): void {
     this.subscriptions.push(this.authService.$isLoggedIn.subscribe((loggedIn)=>{
@@ -278,14 +277,15 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.signalRService.hubConnection.on("ConversationUpdated", newMessage => {
       newMessage = newMessage as MessageDTO;
       console.log(`got a new message - ${newMessage.content}`)
-      this.activeConversations.find(conv => conv.id === newMessage.conversationId)?.messages.push(newMessage);
-      this.latestConversationUpdated = conversation.id;
+      this.messageService.sendMessage(newMessage.conversationId, newMessage);
+      // this.activeConversations.find(conv => conv.id === newMessage.conversationId)?.messages.push(newMessage);
+      // this.latestConversationUpdated = conversation.id;
       // const targetConversationIndex = newActiveConversations.indexOf(targetConversation);
       // targetConversation.messages.push(newMessage);
       // newActiveConversations.splice(targetConversationIndex,1);
       // newActiveConversations.push(targetConversation);
       // this.activeConversations = newActiveConversations;
-      this.changeDetector.detectChanges();
+      // this.changeDetector.detectChanges();
     });
     this.activeConversations.push(conversation);
     this.changeDetector.detectChanges();

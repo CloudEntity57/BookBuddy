@@ -19,10 +19,9 @@ import { CommonModule } from '@angular/common';
   templateUrl: './message-bar.component.html',
   styleUrl: './message-bar.component.scss'
 })
-export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit, AfterViewChecked, OnChanges{
+export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
   constructor(private userService: UserService, private messageService: MessageService, private changeDetector: ChangeDetectorRef){}
   @Input() conversation!: Conversation;
-  @Input() latestMessage!: string;
   @Input() userInfo!: BookBuddyUser;
   // public userInfo!: BookBuddyUser;
   @Output() close = new EventEmitter<boolean>();
@@ -47,28 +46,25 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit, Af
         this.conversationUsers.push(user);
       }));
     });
+
   } 
-  public ngOnChanges(changes: SimpleChanges): void {
-    // console.log('new changes: ', changes)
-    // if(changes['conversation']){
-    //   console.log('got a new conversation coming in')
-    //   this.scrollToBottom();
-    // }
+
+  public handleConversationUpdate(message: MessageDTO): void {
+      this.conversation.messages.push(message);
+      this.scrollToBottom();
   }
-  ngAfterViewChecked(): void {
-    console.log('view checked');
-  
-    this.scrollToBottom();
-  }
-  // public handleConversationUpdate(): void {
-  //   this.scrollToBottom();
-  // }
   public ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
   public ngAfterViewInit(): void{
     console.log(`scrollContainer: ${this.scrollContainer}`)
     this.scrollToBottom();
+    this.subscriptions.push(this.messageService.listenForMessages(this.conversation.id).subscribe(message => {
+      console.log('a new message has arrived via behaviorsubject: ', message)
+    if(message && message.sentAt){
+      this.handleConversationUpdate(message);
+    }
+    }));
   }
 
 
@@ -175,8 +171,10 @@ private parseUtcSqlDateTime(sqlDateTime: string) {
   private scrollToBottom(): void {
     if(this.scrollContainer){
       try {
-        this.scrollContainer.nativeElement.scrollTop =
+        setTimeout(() => {
+          this.scrollContainer.nativeElement.scrollTop =
           this.scrollContainer.nativeElement.scrollHeight;
+        }, 250);
       } catch (err) {
         console.error('Scroll failed:', err);
       }

@@ -12,6 +12,27 @@ export class MessageService {
 
   constructor(private http: HttpClient) { }
 
+  private streams = new Map<string, BehaviorSubject<any>>();
+
+  /** Get an existing stream or create a new one if it doesn't exist */
+  getStream(conversationId: string): BehaviorSubject<any> {
+    if (!this.streams.has(conversationId)) {
+      this.streams.set(conversationId, new BehaviorSubject<any>(null));
+    }
+    return this.streams.get(conversationId)!;
+  }
+
+  /** Push a new message into a specific conversation stream */
+  sendMessage(conversationId: string, message: any) {
+    const stream = this.getStream(conversationId);
+    stream.next(message);
+  }
+
+  /** Subscribe to updates for a specific conversation */
+  listenForMessages(conversationId: string): Observable<any> {
+    return this.getStream(conversationId).asObservable();
+  }
+
   public conversationToStage = new BehaviorSubject<Conversation | null>(null);
 
   public checkExistingConversation(userId1: string, userId2: string): Observable<Conversation> {
