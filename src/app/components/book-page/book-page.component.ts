@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
 import { CreateNotificationDTO, Notification, NotificationType } from '../../interfaces/notification.interface';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -110,6 +110,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.buddies = buddies;
       this.changeDetector.detectChanges();
     }));
+
     if(!this.userLoggedIn){
       this.processBookData();
     }
@@ -117,6 +118,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     console.log('WORK', this.work)
 
   }
+
 
   public resetPageDefaults(): void {
     this.userWantsToRead = false;

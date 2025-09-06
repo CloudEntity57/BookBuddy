@@ -10,9 +10,7 @@ main{
     min-height: 120vh;
     color: styles.$font-color;
 }
-.container{
-    margin: 0vw 10vw 0vw 10vw;
-}
+
 .main-navbar{
     background-color: styles.$main-color;
     height: $navbar-height;
@@ -34,6 +32,11 @@ main{
             text-decoration-line: none;
         }
     }
+}
+.app-slogan{
+    font-style: italic;
+    color: styles.$tertiary-color;
+    font-size: calc(.65rem + 0.6vw);
 }
 // .navbar-buffer{
 //     height: $navbar-height;

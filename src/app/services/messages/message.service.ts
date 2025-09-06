@@ -15,7 +15,7 @@ export class MessageService {
   private streams = new Map<string, BehaviorSubject<any>>();
 
   /** Get an existing stream or create a new one if it doesn't exist */
-  getStream(conversationId: string): BehaviorSubject<any> {
+  public getStream(conversationId: string): BehaviorSubject<any> {
     if (!this.streams.has(conversationId)) {
       this.streams.set(conversationId, new BehaviorSubject<any>(null));
     }
@@ -23,13 +23,13 @@ export class MessageService {
   }
 
   /** Push a new message into a specific conversation stream */
-  sendMessage(conversationId: string, message: any) {
+  public updateMessage(conversationId: string, message: any) {
     const stream = this.getStream(conversationId);
     stream.next(message);
   }
 
   /** Subscribe to updates for a specific conversation */
-  listenForMessages(conversationId: string): Observable<any> {
+  public listenForMessages(conversationId: string): Observable<any> {
     return this.getStream(conversationId).asObservable();
   }
 

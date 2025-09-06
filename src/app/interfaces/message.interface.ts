@@ -6,6 +6,7 @@ export interface AddMessageDTO{
     isEdited?: string
 }
 export interface MessageDTO{
+    id: string,
     conversationId: string,
     senderId: string,
     content: string,

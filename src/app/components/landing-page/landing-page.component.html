@@ -1,31 +1,18 @@
 <header class="main-header">
 
 </header>
-<div class="landing-page-contents">
-    <!-- <div class="landing-search-container"> -->
-        <app-book-dropdown-option dropdown_type="landing-search"></app-book-dropdown-option>
-        <!-- <form [formGroup]="book_form">
-            <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" class="search landing-search form-control" placeholder="What do you want to read?">
-            <mat-autocomplete #auto="matAutocomplete">
-                <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="goToBookPage(book_option)">
-                    <div class="options-container">
-                        <ng-container *ngIf="book_option.source === 'google'">
-                                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
-
-                            <div class="text-container">
-                                {{book_option.volumeInfo?.authors + ': ' + book_option.volumeInfo?.title}}
-                            </div>
-                        </ng-container>
-                        <ng-container *ngIf="book_option.source === 'openLibrary'">
-                                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
-
-                            <div class="text-container">
-                                {{book_option.author_name + ': ' + book_option.title}}
-                            </div>
-                        </ng-container>
-                    </div>
-                </mat-option>
-            </mat-autocomplete>
-        </form> -->
-    <!-- </div> -->
+<div class="landing-page-contents container">
+    <app-book-dropdown-option dropdown_type="landing-search"></app-book-dropdown-option>
+    <h2 class="bestseller-header">This Week's New York Times Bestsellers:</h2>
+    <div class="bestsellers-container">
+        <div class="bestseller" *ngFor="let book of nyTimesBestsellers">
+            <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+        </div>
+    </div>
+        <h2 class="bestseller-header">This Week's New York Times Combined Print & E-Book Bestsellers:</h2>
+    <div class="bestsellers-container">
+        <div class="bestseller" *ngFor="let book of combinedPrintAndEbookBestsellers">
+            <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+        </div>
+    </div>
 </div>
