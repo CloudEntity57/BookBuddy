@@ -18,5 +18,9 @@ export const environment = {
         /** OPEN LIBRARY API */
         // bookSearchApi: "openLibrary",
         // bookByIdApi: "openLibrary",
+
+        /** NYT Bestsellers API */
+        nytBooksApiToken: "wNmhxQjxQXOltAcx2JFkIRaTpAiDGG6z",
+        nytBooksApi: "https://api.nytimes.com/svc/books/v3/lists"
     }
 }

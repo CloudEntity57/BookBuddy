@@ -23,6 +23,9 @@ $secondary-action-color: rgb(223, 198, 161);
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+.container{
+    margin: 0vw 10vw 0vw 10vw;
+}
 .action-button{
     background-color: $action-color !important;
     color: #000 !important;

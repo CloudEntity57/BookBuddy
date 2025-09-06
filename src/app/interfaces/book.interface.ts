@@ -22,6 +22,12 @@ export interface GoogleBookInfo {
     }
 }
 
+export interface GoogleBookResponse {
+    kind: string,
+    totalItems: number,
+    items: Array<GoogleBookInfo>
+}
+
 export interface GoogleBookSearchResults {
     source: "google",
     items: Array<GoogleBookInfo>
@@ -85,4 +91,66 @@ export interface DatabaseBook {
 export interface CreateBookDto {
     author: string,
     title: string
+}
+
+export interface NYTimesListResponse {
+    status: string,
+    copyright: string,
+    num_results: number,
+    results: NYTimesResults,
+    corrections: Array<object>	
+}
+
+export interface NYTimesResults {
+    display_name: string,
+    // Display name for the list.
+    list_name_encoded: string,
+    // List name encoded for the URL path.
+    published_date: string,
+    // When the list was in print.
+    updated: string,
+    // How often the list is updated (WEEKLY or MONTHLY).
+    previous_published_date: string,
+    // Date of previous list if exists.
+    next_published_date: string,
+    // Date of next list if exists.
+    books: Array<NyTimesBook>
+}
+
+export interface NyTimesBook {
+    googleBooksVersion: GoogleBookInfo,
+    rank: number,
+    // Rank on the list.
+    rank_last_week: number,
+    // Rank on list last week.
+    weeks_on_list: number,
+    // Number of weeks on list.
+    asterisk: number
+    // Book's sales are barely distinguishable from those of the book above it.
+    dagger: number,
+    // Some retailers report receiving bulk orders.
+    primary_isbn13: string,
+    // The book's ID, which is usually an ISBN 13.
+    publisher: string,
+    // Publisher name.
+    description: string,
+    // A short description of the book.
+    title: string,
+    // The book title.
+    author: string,
+    // The book author.
+    contributor: string,
+    // The book author.
+    book_image: string,
+    // Book cover image.
+    book_image_height: number,
+    book_image_width: number,
+    amazon_product_url: string,
+    // A link to the book on Amazon.
+    age_group: string,
+   // Book age group.
+    book_review_link: string,
+    // Link to NYT book review.
+    sunday_review_link: string
+    // Link to NYT Sunday book review.
 }

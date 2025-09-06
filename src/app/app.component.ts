@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { WINDOW } from '../assets/window.token';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
@@ -39,7 +39,7 @@ import { MessageDTO } from './interfaces/message.interface';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
+  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
   }
   NotificationType = NotificationType;
   private lastScrollTop = 0;
@@ -120,7 +120,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
 
     this.subscriptions.push(this.authService.userInfo.subscribe(user => {
       this.user = user
-    }))
+    }));
+    this.subscriptions.push(this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        window.scrollTo({ top: 0 });
+      }
+    }));
 
     this.subscribeToGlobalNotificationsUpdates();
 
@@ -277,7 +282,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.signalRService.hubConnection.on("ConversationUpdated", newMessage => {
       newMessage = newMessage as MessageDTO;
       console.log(`got a new message - ${newMessage.content}`)
-      this.messageService.sendMessage(newMessage.conversationId, newMessage);
+      this.messageService.updateMessage(newMessage.conversationId, newMessage);
       // this.activeConversations.find(conv => conv.id === newMessage.conversationId)?.messages.push(newMessage);
       // this.latestConversationUpdated = conversation.id;
       // const targetConversationIndex = newActiveConversations.indexOf(targetConversation);

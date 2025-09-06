@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
-import { CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
+import { CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
 
 
@@ -88,6 +88,14 @@ export class BookService {
 
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{
     return this.http.get(`${environment.books.openLibraryWorksApi}${author_key}.json`) as Observable<OpenLibraryAuthorInfo>;
+  }
+
+  public getNyTimesBestsellerList(): Observable<NYTimesListResponse>{
+    return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
+  }
+
+    public getNyTimesEBooksNonFictionBestsellerList(): Observable<NYTimesListResponse>{
+    return this.http.get(`${environment.books.nytBooksApi}/current/combined-print-and-e-book-nonfiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
   }
 
 }

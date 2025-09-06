@@ -59,9 +59,11 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
     this.scrollToBottom();
     this.subscriptions.push(this.messageService.listenForMessages(this.conversation.id).subscribe(message => {
       console.log('a new message has arrived via behaviorsubject: ', message)
-    if(message && message.sentAt){
-      this.handleConversationUpdate(message);
-    }
+      // sometimes behaviorsubject keeps firing the same message so block duplicates:
+      const messageAlreadyAdded: boolean = this.conversation.messages.some(msg => msg.id === message.id);
+      if(message && message.sentAt && !messageAlreadyAdded){
+        this.handleConversationUpdate(message);
+      }
     }));
   }
 
