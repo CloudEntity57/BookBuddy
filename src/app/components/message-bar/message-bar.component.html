@@ -13,7 +13,7 @@
                     <div class="message" [class.message-user]="message.senderId === userInfo.id" [class.message-buddy]="message.senderId !== userInfo.id">
                         <!-- <div *ngIf="message.senderId !== userInfo.id" class="message-header"> -->
                         <div *ngIf="displayUserMessageInfo(conversation.messages, message)" class="message-header">
-                            <span class="message-avatar" [style.background-image]="`url(${buddyAvatarUrl(message)})`"></span>
+                            <span class="message-avatar" [style.background-image]="`url(${userImageService.getProfileImage(message.senderId)})`"></span>
                             {{buddyName(message)}}
                         </div>
                         {{message.content}} <span class="message-timestamp">{{messageTime(message)}}</span>  

@@ -20,6 +20,7 @@ import { MessageBarComponent } from "../message-bar/message-bar.component";
 import { NotificationService } from '../../services/notifications/notification.service';
 import { MessageService } from '../../services/messages/message.service';
 import { Conversation, ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
+import { ImageService } from '../../services/images/image.service';
 @Component({
   selector: 'app-book-page',
   imports: [
@@ -33,7 +34,9 @@ import { Conversation, ConversationMember, CreateConversationDto } from '../../i
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private changeDetector: ChangeDetectorRef){
+    public userImageService!: ImageService;
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef){
+      this.userImageService = imageService;
     }
     
     public api_type = environment.books.bookByIdApi;

@@ -20,6 +20,7 @@ import { Conversation } from './interfaces/conversation.interface';
 import { MessageService } from './services/messages/message.service';
 import { SignalRService } from './services/signalR/signal-r.service';
 import { MessageDTO } from './interfaces/message.interface';
+import { ImageService } from './services/images/image.service';
 
 
 @Component({
@@ -39,7 +40,9 @@ import { MessageDTO } from './interfaces/message.interface';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
-  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
+  public userImageService!: ImageService;
+  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
+    this.userImageService = imageService;
   }
   NotificationType = NotificationType;
   private lastScrollTop = 0;
