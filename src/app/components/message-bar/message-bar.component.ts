@@ -3,11 +3,13 @@ import { Conversation, ConversationMember } from '../../interfaces/conversation.
 import { BookBuddyUser } from '../../interfaces/user.interface';
 import { UserService } from '../../services/user/user.service';
 import { Subscription } from 'rxjs';
-import { MatInputModule } from '@angular/material/input';
+import { MatInputModule, MatInput } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MessageService } from '../../services/messages/message.service';
 import { AddMessageDTO, MessageDTO } from '../../interfaces/message.interface';
 import { CommonModule } from '@angular/common';
+import { ImageService } from '../../services/images/image.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-message-bar',
@@ -18,7 +20,10 @@ import { CommonModule } from '@angular/common';
   styleUrl: './message-bar.component.scss'
 })
 export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
-  constructor(private userService: UserService, private messageService: MessageService, private changeDetector: ChangeDetectorRef){}
+  public userImageService!: ImageService;
+  constructor(private userService: UserService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef){
+    this.userImageService = imageService;
+  }
   @Input() conversation!: Conversation;
   @Input() userInfo!: BookBuddyUser;
   // public userInfo!: BookBuddyUser;
@@ -101,7 +106,8 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
     }
     if (!textContent.trim() || innerHTML === '<br>' || innerHTML === '<div><br></div>') {
       target.innerHTML = '';
-    }  }
+    }  
+  }
 
   public sendMessage(target: HTMLDivElement){
     const message = document.querySelector('#message-text')?.innerHTML;

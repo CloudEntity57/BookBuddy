@@ -96,8 +96,8 @@ export class AuthService {
           sessionStorage.setItem('user_id', user.id);
           // this.notificationService.startConnection();
           this.signalRService.startConnection();
-          this.notificationService.listenForSignalRConnection();
-        },
+          this.notificationService.listenForSignalRConnection();    
+      },
         error: (err: HttpErrorResponse) => {
           if(err.status == 404){
             this.newUserLogic(err, userProfile);
@@ -122,12 +122,41 @@ export class AuthService {
       this.saveNewUser(userDto).subscribe({
         next: user => {
           console.log('NEW USER CREATED IN DB: ', user)
-          this.userInfo.next(user);
+          // Migrate Google image → SQL Server
+          this.cacheGoogleProfileImage(user.id, user.avatarUrl).then(resp => {
+            console.log('photo successfully cached: ', resp)
+          })
+          this.getUserById(user.id).subscribe({
+            next: user => {
+              this.userInfo.next(user);
+            }
+          });
         },
         error: (err: HttpErrorResponse) => {
           console.log('ERROR creating new user: ', err)
         }
       });
+    }
+  }
+
+  async cacheGoogleProfileImage(userId: string, googleUrl: string): Promise<void> {
+    try {
+      // Fetch image from Google URL
+      const response = await fetch(googleUrl);
+      const blob = await response.blob();
+
+      // Convert Blob → File for FormData
+      const file = new File([blob], 'profile.jpg', { type: blob.type });
+
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload to API
+      await this.http
+        .post(`${environment.apiUrl}/users/upload-image/${userId}`, formData).toPromise();
+    } catch (err) {
+      console.error('Failed to cache Google profile image:', err);
     }
   }
 
