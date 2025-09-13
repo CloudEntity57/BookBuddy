@@ -2,15 +2,18 @@
 @use 'styles.scss' as styles;
 // @use 'styles.scss' as styles;
 
-@mixin centered-styling {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+// @mixin centered-styling {
+//     height: 100%;
+//     display: flex;
+//     flex-direction: column;
+//     justify-content: center;
+// }
+
+.basic-instructions{
+    margin-top: 10px;
 }
 
 .book-info, .action-to-read, .want-to-read{
-    width: 25vw;
     @media(max-width: 950px) {
         width: 35vw;
     }
@@ -18,9 +21,27 @@
         width: 80vw;
     }
 }
+.container{
+    // margin: 0px !important;
+    padding: 0px !important;
+}
+.book-info{
+    width: 25vw;
+}
+.action-to-read{
+    width: 20vw;
+}
+.want-to-read{
+    width: 35vw;
+}
 
 .book-info{
     // max-width: 30vw;
+}
+
+.read-button{
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .book-columns{
@@ -64,68 +85,68 @@ mat-divider{
     padding-bottom: 50px;
 }
 
-$user-height: 50px;
-$transition-speed: .75s;
-$expanded-height: 63px;
+// $user-height: 50px;
+// $transition-speed: .75s;
+// $expanded-height: 63px;
 
-.user-want-to-read{
-    max-width: 290px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 4px;
-    padding: 4px;
-    border: 1px solid styles.$secondary-color;
-    height: $user-height;
-    border-radius: 50px;
-    &:hover{
-        cursor: pointer;
-        // height: $expanded-height;
-        // width: 300px;
-        // .user-avatar{
-        //     width: $expanded-height;
-        //     height: $expanded-height;
-        //     transition: width .6s;
-        // }
-        transition: all .4s;
-        .invite-buddy{
-            width: 100px;
-            transition: all .4s;
-        }
+// .user-want-to-read{
+//     max-width: 350px;
+//     display: flex;
+//     flex-direction: row;
+//     justify-content: space-between;
+//     margin-top: 4px;
+//     padding: 4px;
+//     border: 1px solid styles.$secondary-color;
+//     // height: $user-height;
+//     border-radius: 50px;
+//     &:hover{
+//         cursor: pointer;
+//         // height: $expanded-height;
+//         // width: 300px;
+//         // .user-avatar{
+//         //     width: $expanded-height;
+//         //     height: $expanded-height;
+//         //     transition: width .6s;
+//         // }
+//         transition: all .4s;
+//         .invite-buddy{
+//             width: 100px;
+//             transition: all .4s;
+//         }
 
-    }
-}
-.invited-buddy{
-    width: 100px;
-}
+//     }
+// }
+// .invited-buddy{
+//     width: 100px;
+// }
 
-.invite-buddy, .invited-buddy{
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: center;
-}
+// .invite-buddy, .invited-buddy{
+//     display: flex;
+//     height: $user-height;
+//     flex-direction: column;
+//     justify-content: center;
+// }
 
-.user-avatar{
-    border-radius: 50%;
-    // height:$user-height;
-    min-height: $user-height;
-    min-width: $user-height;
-    background-size: cover;
-}
+// .user-avatar{
+//     border-radius: 50%;
+//     height:$user-height;
+//     min-height: $user-height;
+//     min-width: $user-height;
+//     background-size: cover;
+// }
 
-.user-name{
-    font-weight: bold;
-    margin: 0px 15px 0px 15px;
-    @include centered-styling;
-}
+// .user-name{
+//     font-weight: bold;
+//     margin: 0px 15px 0px 15px;
+//     @include centered-styling;
+// }
 
-.invite-buddy{
-    @include centered-styling;
-    width: 0px;
-    overflow: hidden;
-    margin-left: 5px;
-}
+// .invite-buddy{
+//     @include centered-styling;
+//     width: 0px;
+//     overflow: hidden;
+//     margin-left: 5px;
+// }
 
 .buddy-button{
     height: 30px;
@@ -135,6 +156,6 @@ $expanded-height: 63px;
     background-color: styles.$dark-main-color !important;
 }
 
-.username-and-icon{
-    display: flex;
-}
+// .username-and-icon{
+//     display: flex;
+// }

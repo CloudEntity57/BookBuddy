@@ -1,4 +1,34 @@
 
-<div class="container">
-    What do you want to read?
+<div class="custom-container">
+    <div class="dashboard-header">
+        <div>
+            <div class="dashboard-profile-pic" [style.background-image]="`url(${userImageService.getProfileImage(userInfo.id)})`"></div>
+        </div>
+        <div class="dashboard-username">
+            <div>{{userInfo.userName}}</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            <h3>BookBuddies</h3>
+            <div class="buddy" *ngFor="let buddy of buddies">
+                <span class="username-and-icon">
+                    <span class="user-avatar" [style.background-image]="`url(${userImageService.getProfileImage(buddy.id)})`"></span>
+                    <span class="user-name">{{buddy.userName}}</span>
+                </span>
+                <span class="invited-buddy"><button (click)="initiateMessaging(buddy)" class="action-button buddy-button" mat-raised-button>Message</button></span>
+            </div>
+        </div>
+        <div class="col sm-8">
+            <h3>Want to Read</h3>
+            <div class="col-sm-12">
+                <div class="dashboard-book" *ngFor="let book of wantToReadList">
+                    <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
+                    <!-- {{book.volumeInfo.title}} -->
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div class="row">
 </div>

@@ -98,19 +98,19 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.subscriptions.push(fromEvent(window, 'scroll').pipe(debounceTime(10)).subscribe(()=>{
       const currentScroll = document.documentElement.scrollTop;
       if(currentScroll > this.lastScrollTop){
-        console.log(' > last scroll top')
+        // console.log(' > last scroll top')
         document.querySelector('.main-navbar')?.setAttribute('class','main-navbar vanishing');
         // setTimeout(() => {
         //   document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         // },500)
         this.changeDetector.detectChanges();
       }else if(currentScroll <= 200){
-        console.log('scrolled to top. current: ', currentScroll)
+        // console.log('scrolled to top. current: ', currentScroll)
         document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       }
       else{
-        console.log('else scroll evt')
+        // console.log('else scroll evt')
         document.querySelector('.main-navbar')?.setAttribute('class', 'main-navbar appearing');
         this.changeDetector.detectChanges();
       }

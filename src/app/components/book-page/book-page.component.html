@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container custom-container">
     <div class="book-columns">
         <div class="book-info">
             <div class="book-title">{{title}} </div>
@@ -7,9 +7,11 @@
             <img class="book-image" src={{thumbnail}}>
         </div>
         <div class="action-to-read">
-            <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button" mat-raised-button>I Want To Read This</button>
-            <button *ngIf="userWantsToRead" (click)="wantToRead(true)" class="action-button" mat-raised-button>Remove Me</button>
-            <ul>
+            <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
+            <button *ngIf="userWantsToRead" (click)="wantToRead(true)" class="action-button read-button" mat-raised-button>Remove Me</button>
+            <button (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+
+            <ul class="basic-instructions">
                 <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
                 <li>Once book buddies, you can discuss books together via messaging, or get serious and schedule a seminar or video chat.</li>
                 <li>Invite anyone you are book buddies with to read anything, and message freely.</li>
