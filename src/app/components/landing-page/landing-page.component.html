@@ -1,18 +1,22 @@
 <header class="main-header">
 
 </header>
-<div class="landing-page-contents container">
+<div class="landing-page-contents custom-container">
     <app-book-dropdown-option dropdown_type="landing-search"></app-book-dropdown-option>
-    <h2 class="bestseller-header">This Week's New York Times Bestsellers:</h2>
-    <div class="bestsellers-container">
-        <div class="bestseller" *ngFor="let book of nyTimesBestsellers">
-            <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+    <ng-container *ngIf="nyTimesBestsellers && nyTimesBestsellers.length > 0">
+        <h2 class="bestseller-header">This Week's New York Times Bestsellers:</h2>
+        <div class="bestsellers-container">
+            <div class="bestseller" *ngFor="let book of nyTimesBestsellers">
+                <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+            </div>
         </div>
-    </div>
+    </ng-container>
+    <ng-container *ngIf="combinedPrintAndEbookBestsellers && combinedPrintAndEbookBestsellers.length > 0">
         <h2 class="bestseller-header">This Week's New York Times Combined Print & E-Book Bestsellers:</h2>
-    <div class="bestsellers-container">
-        <div class="bestseller" *ngFor="let book of combinedPrintAndEbookBestsellers">
-            <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+        <div class="bestsellers-container">
+            <div class="bestseller" *ngFor="let book of combinedPrintAndEbookBestsellers">
+                <div (click)="goToBookPage(book.googleBooksVersion)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
+            </div>
         </div>
-    </div>
+    </ng-container>
 </div>

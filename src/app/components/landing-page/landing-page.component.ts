@@ -35,8 +35,8 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
 
   public book_form!: FormGroup;
 
-  public nyTimesBestsellers!: Array<NyTimesBook>;
-  public combinedPrintAndEbookBestsellers!: Array<NyTimesBook>;
+  public nyTimesBestsellers: Array<NyTimesBook> = [];
+  public combinedPrintAndEbookBestsellers: Array<NyTimesBook> = [];
 
 
 

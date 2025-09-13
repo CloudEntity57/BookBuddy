@@ -1,12 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
-import { CreateNotificationDTO, Notification, NotificationType } from '../../interfaces/notification.interface';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, concatMap, forkJoin, from, map, mergeMap, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
@@ -16,10 +15,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { BuddyRequestDialogComponent } from '../../shared/components/buddy-request-dialog/buddy-request-dialog.component';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { MatMenuModule } from '@angular/material/menu';
-import { MessageBarComponent } from "../message-bar/message-bar.component";
 import { NotificationService } from '../../services/notifications/notification.service';
 import { MessageService } from '../../services/messages/message.service';
-import { Conversation, ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
+import { ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { ImageService } from '../../services/images/image.service';
 @Component({
   selector: 'app-book-page',
@@ -147,7 +145,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           if (err.status === 404) {
             console.log('no existing conversation found. Creating new conversation')
             // No conversation exists → create one
-            this.createNewConversation(user1, user2)
+            this.messageService.createNewConversation(user1, user2)
           }
           if (err.status === 500){
             console.log('internal error: ', err.error)
@@ -156,42 +154,42 @@ export class BookPageComponent implements OnInit, OnDestroy{
       }));
   }
 
-  public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
-    const newConversation: CreateConversationDto = {
-      name: `Message between ${user1.userName} and ${user2.userName}`,
-      isGroup: false,
-    };
+  // public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
+  //   const newConversation: CreateConversationDto = {
+  //     name: `Message between ${user1.userName} and ${user2.userName}`,
+  //     isGroup: false,
+  //   };
 
-    this.subscriptions.push(this.messageService.createConversation(newConversation).pipe(
-      switchMap((conv) => {
-        // if(conv && conv.id){
-          const addFirst = this.addUserToConversation(user1, conv.id);
-          const addSecond = this.addUserToConversation(user2, conv.id);
-          return forkJoin([addFirst, addSecond, of(conv)]);
-        // }
-      })
-    ).subscribe({
-      next: ([firstResp, secondResp, conv]) => {
-        console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
-        // Navigate to chat
-        this.messageService.conversationToStage.next(conv);
-        this.progressBarService.stopProgressBar();
-      },
-      error: (error) => {
-        console.log(error);
-        this.progressBarService.stopProgressBar();
-      }
-    }));
-  }
+  //   this.subscriptions.push(this.messageService.createConversation(newConversation).pipe(
+  //     switchMap((conv) => {
+  //       // if(conv && conv.id){
+  //         const addFirst = this.addUserToConversation(user1, conv.id);
+  //         const addSecond = this.addUserToConversation(user2, conv.id);
+  //         return forkJoin([addFirst, addSecond, of(conv)]);
+  //       // }
+  //     })
+  //   ).subscribe({
+  //     next: ([firstResp, secondResp, conv]) => {
+  //       console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
+  //       // Navigate to chat
+  //       this.messageService.conversationToStage.next(conv);
+  //       this.progressBarService.stopProgressBar();
+  //     },
+  //     error: (error) => {
+  //       console.log(error);
+  //       this.progressBarService.stopProgressBar();
+  //     }
+  //   }));
+  // }
 
-  public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
-    const newMember: ConversationMember = {
-      userName: user.userName,
-      userId: user.id,
-      conversationId
-    }
-    return this.messageService.addConversationMember(newMember);
-  }
+  // public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
+  //   const newMember: ConversationMember = {
+  //     userName: user.userName,
+  //     userId: user.id,
+  //     conversationId
+  //   }
+  //   return this.messageService.addConversationMember(newMember);
+  // }
 
   public processBookData(){
     this.route.queryParams.subscribe(params => {
@@ -471,6 +469,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
         }
       }
     }));
+  }
+
+  public writeReview(book: GoogleBookInfo){
+    
   }
 
 }

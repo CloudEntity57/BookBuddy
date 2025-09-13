@@ -83,6 +83,7 @@ export interface OpenLibraryBookResults {
 
 export interface DatabaseBook {
     id: string,
+    googleId?: string,
     author: string,
     title: string,
     usersWantToRead?: Array<BookBuddyUser>
@@ -90,7 +91,7 @@ export interface DatabaseBook {
 
 export interface CreateBookDto {
     author: string,
-    title: string
+    title: string,
 }
 
 export interface NYTimesListResponse {

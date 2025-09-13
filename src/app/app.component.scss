@@ -4,6 +4,15 @@
 
 $navbar-height: 60px;
 $right-controls-spacing: 15px;
+$user-height: 50px;
+$transition-speed: .75s;
+$expanded-height: 63px;
+@mixin centered-styling {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 main{
     background-color: styles.$secondary-color;
     padding-top: $navbar-height;
@@ -65,6 +74,65 @@ main{
     cursor: pointer !important;
 }
 
+.user-want-to-read, .buddy{
+    max-width: 350px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding: 4px;
+    border: 1px solid styles.$secondary-color;
+    // height: $user-height;
+    border-radius: 50px;
+    &:hover{
+        cursor: pointer;
+        // height: $expanded-height;
+        // width: 300px;
+        // .user-avatar{
+        //     width: $expanded-height;
+        //     height: $expanded-height;
+        //     transition: width .6s;
+        // }
+        transition: all .4s;
+        .invite-buddy{
+            width: 100px;
+            transition: all .4s;
+        }
+
+    }
+}
+.user-avatar{
+    border-radius: 50%;
+    height:$user-height;
+    min-height: $user-height;
+    min-width: $user-height;
+    background-size: cover;
+}
+.invite-buddy, .invited-buddy{
+    display: flex;
+    height: $user-height;
+    flex-direction: column;
+    justify-content: center;
+}
+.user-name{
+    font-weight: bold;
+    margin: 0px 15px 0px 15px;
+    @include centered-styling;
+}
+
+.invite-buddy{
+    @include centered-styling;
+    width: 0px;
+    overflow: hidden;
+    margin-left: 5px;
+}
+.invited-buddy{
+    width: 100px;
+}
+
+.username-and-icon{
+    display: flex;
+}
 .search{
     //color: #fff;
     &:focus{

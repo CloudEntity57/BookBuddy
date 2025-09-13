@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, forkJoin, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Conversation, ConversationMember } from '../../interfaces/conversation.interface';
+import { Conversation, ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { AddMessageDTO, MessageDTO } from '../../interfaces/message.interface';
+import { BookBuddyUser } from '../../interfaces/user.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -51,4 +52,42 @@ export class MessageService {
   public addMessage(messageDTO: AddMessageDTO): Observable<MessageDTO>{
     return this.http.post(`${environment.apiUrl}/message`, messageDTO) as Observable<MessageDTO>;
   }
+
+    public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
+      const newConversation: CreateConversationDto = {
+        name: `Message between ${user1.userName} and ${user2.userName}`,
+        isGroup: false,
+      };
+  
+      this.createConversation(newConversation).pipe(
+        switchMap((conv) => {
+          // if(conv && conv.id){
+            const addFirst = this.addUserToConversation(user1, conv.id);
+            const addSecond = this.addUserToConversation(user2, conv.id);
+            return forkJoin([addFirst, addSecond, of(conv)]);
+          // }
+        })
+      ).subscribe({
+        next: ([firstResp, secondResp, conv]) => {
+          console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
+          // Navigate to chat
+          this.conversationToStage.next(conv);
+          // this.progressBarService.stopProgressBar();
+        },
+        error: (error) => {
+          console.log(error);
+          // this.progressBarService.stopProgressBar();
+        }
+      });
+    }
+
+  public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
+    const newMember: ConversationMember = {
+      userName: user.userName,
+      userId: user.id,
+      conversationId
+    }
+    return this.addConversationMember(newMember);
+  }
+  
 }
