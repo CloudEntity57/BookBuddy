@@ -51,6 +51,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public databaseBook?: DatabaseBook;
     public book!: GoogleBookInfo;
     public work!: OpenLibraryWorkInfo;
+    public apiBookId: string = '';
     // public author?: Array<string> = this.api_type == "openLibrary" ? this.work?.subject_people : this.book?.volumeInfo?.authors;
     public get title() { return this.api_type == "openLibrary" ? this.work?.title :  this.book?.volumeInfo?.title };
     public get date(){ return this.api_type == "openLibrary" ? this.work?.created.value : this.book?.volumeInfo?.publishedDate};
@@ -199,6 +200,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.changeDetector?.detectChanges();
       console.log('NEW PARAMS - ', params)
       const bookId = params['id'];
+      this.apiBookId = bookId;
       console.log('BOOK ID = ',bookId)
       this.subscriptions.push(this.bookService.getAPIBookById(bookId!, environment.books.bookByIdApi).subscribe(book => {
             if(this.api_type === "google" && book.source === "google") this.book = book;
@@ -323,8 +325,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
             // add user to list of users who want to read the book
             const book = res;
             const userId = this.userInfo.id;
+            const apiBookId = this.apiBookId;
             this.databaseBook = res;
-            this.bookService.updateBookWantToRead(userId, book.id).subscribe(created => {
+            this.bookService.updateBookWantToRead(userId, book, apiBookId).subscribe(created => {
               this.setUserWantsToRead(created);
               this.progressBarService.stopProgressBar();
             })
@@ -337,9 +340,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
       // book already exists in DB, so add user to existing book:
       const book = res as DatabaseBook;
       const usersWantToRead = JSON.stringify(book.usersWantToRead);
+      const apiBookId = this.apiBookId;
       console.log(`res: ${book.title} - ${usersWantToRead}`)
       this.checkIfLoggedIn();
-      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book.id).subscribe(created => {
+      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
         this.setUserWantsToRead(created);
       }));
       this.progressBarService.stopProgressBar();
