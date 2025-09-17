@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { ImageService } from '../../services/images/image.service';
 import { BookService } from '../../services/books/book.service';
-import { GoogleBookInfo } from '../../interfaces/book.interface';
+import { DatabaseBook, GoogleBookInfo } from '../../interfaces/book.interface';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MessageService } from '../../services/messages/message.service';
@@ -44,20 +44,9 @@ export class DashboardComponent implements OnInit, OnDestroy{
               this.userLoggedIn = true;
               if(userInfo.wantToRead && userInfo.wantToRead.length > 0){
                 userInfo.wantToRead.forEach(book => {
-                  this.subscriptions.push(this.bookService.bookSearch(book.title+' '+book.author, "google").subscribe({
-                    next: bookResults => {
-                      const googleBookResults: Array<GoogleBookInfo> = bookResults as Array<GoogleBookInfo>;
-                      console.log('google returned books for booklist: ', googleBookResults)
-                      const newBook = googleBookResults.find(bk => {
-                        // if(bk && bk.volumeInfo || !bk.volumeInfo?.title || !bk.volumeInfo.authors || !bk.volumeInfo.imageLinks){
-                        //   return;
-                        // }
-                            return bk?.volumeInfo?.title === book.title && bk?.volumeInfo?.authors[0] === book.author && bk?.volumeInfo?.imageLinks && bk?.volumeInfo?.imageLinks.smallThumbnail
-                        });
-                      if(!newBook || !newBook.id) return;
-                      console.log('new book in list: ', newBook)
-                      this.wantToReadList.push(newBook);
-                      // this.changeDetector.detectChanges();
+                  this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
+                    next: bookResult => {
+                      this.wantToReadList.push(bookResult);
                     },
                     error: error => console.log('error getting book by id: ', error.message)
                   }));

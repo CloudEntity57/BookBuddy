@@ -84,9 +84,24 @@ export interface OpenLibraryBookResults {
 export interface DatabaseBook {
     id: string,
     googleId?: string,
+    apiId: string,
     author: string,
     title: string,
     usersWantToRead?: Array<BookBuddyUser>
+}
+
+export interface UserBookDto {
+    userId: string,
+    bookId: string,
+    apiBookId: string,
+    bookType: BookType,
+    note?: string
+}
+
+export enum BookType {
+    wantToRead,
+    read,
+    favorite
 }
 
 export interface CreateBookDto {

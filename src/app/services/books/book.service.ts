@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
-import { CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo } from '../../interfaces/book.interface';
+import { BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
 
 
@@ -75,8 +75,15 @@ export class BookService {
     })) as Observable<any>;
   }
 
-  public updateBookWantToRead(userId: string, bookId: string ): Observable<any>{
-    return this.http.put(`${environment.apiUrl}/Book/${userId}/${bookId}`,{}).pipe(catchError(err => {
+  public updateBookWantToRead(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
+    const userBookDto: UserBookDto = {
+      bookId: book.id,
+      userId,
+      apiBookId,
+      bookType: BookType.wantToRead,
+      note
+    }
+    return this.http.put(`${environment.apiUrl}/Book/want_to_read`,userBookDto).pipe(catchError(err => {
       console.log('error saving new book preference: ', err.status, '-', err.error);
       return throwError(() => new Error('Something went wrong adding book to your want to read list. Please try again.'));
     }))
