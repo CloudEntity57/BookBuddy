@@ -88,14 +88,14 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
           this.subscriptions.push(this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}`).subscribe({
             next: googleBookResp => {
               // console.log('google nyt book: ', googleBookResp.items[0])
-              let googleBook = googleBookResp.items[0];
+              let googleBook = googleBookResp && googleBookResp.items ? googleBookResp.items[0] : null;
               if(googleBook){
                 googleBook.source = 'google';
+                googleBestsellers.push(googleBook);
+                book.googleBooksVersion = googleBook;
               }else{
                 console.log('no google version of this book was found')
               }
-              googleBestsellers.push(googleBook);
-              book.googleBooksVersion = googleBook;
             },
             error: error => console.log('error getting google nyt ebook: ', error)
           }));

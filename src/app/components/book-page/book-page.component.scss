@@ -13,26 +13,29 @@
     margin-top: 10px;
 }
 
-.book-info, .action-to-read, .want-to-read{
-    @media(max-width: 950px) {
-        width: 35vw;
-    }
-    @media(max-width: 650px){
-        width: 80vw;
-    }
-}
+// .book-info, .action-to-read, .want-to-read{
+//     @media(max-width: 2500px){
+//         width: 33vw;
+//     }
+//     @media(max-width: 950px) {
+//         width: 30vw;
+//     }
+//     @media(max-width: 650px){
+//         width: 80vw;
+//     }
+// }
 .container{
     // margin: 0px !important;
-    padding: 0px !important;
+    padding: 10px 0px !important;
 }
 .book-info{
-    width: 25vw;
+    // width: 25vw;
 }
 .action-to-read{
-    width: 20vw;
+    // width: 20vw;
 }
 .want-to-read{
-    width: 35vw;
+    // width: 35vw;
 }
 
 .book-info{
@@ -44,12 +47,12 @@
     margin-bottom: 10px;
 }
 
-.book-columns{
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
+// .book-columns{
+//     display: flex;
+//     justify-content: space-between;
+//     flex-wrap: wrap;
+//     margin-top: 20px;
+// }
 
 .book-title{
     font-size: 1.5em;

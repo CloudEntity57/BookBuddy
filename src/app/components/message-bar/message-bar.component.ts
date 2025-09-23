@@ -32,17 +32,19 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
   public isOpen: boolean = true;
   public placeholder: string = 'Aa';
   public conversationName: string = '';
+  public messageTextId = '';
   public conversationMates: Array<ConversationMember> = [];
   public conversationUsers: Array<BookBuddyUser> = [];
   public subscriptions: Array<Subscription> = [];
   @ViewChild('scrollContainer', { static: false }) private scrollContainer!: ElementRef;
   public ngOnInit(): void {
     // this.scrollToBottom();
-    this.conversationMates = this.conversation.members;
+    this.conversationMates = this.conversation.members; 
     this.conversationMates = this.conversationMates.filter(member => {
       return member.userId != this.userInfo.id;
     });
     this.conversationName = `${this.conversationMates.map(name => name.userName)}`;
+    this.messageTextId = this.conversationName.split(' ').join('')
     
     this.conversation.members.forEach(member => {
       this.subscriptions.push(this.userService.getUserById(member.userId).subscribe(user => {
@@ -111,8 +113,8 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
   }
 
   public sendMessage(target: HTMLDivElement){
-    const message = document.querySelector('#message-text')?.innerHTML;
-    console.log(message)
+    const message = document.querySelector(`#${this.messageTextId}`)?.innerHTML;
+    console.log('new message just typed: ',message)
     target.innerHTML = '';
     const addMessageDTO: AddMessageDTO = {
       senderId: this.userInfo.id,

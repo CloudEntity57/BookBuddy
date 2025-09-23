@@ -1,15 +1,23 @@
 <div class="container custom-container">
-    <div class="book-columns">
-        <div class="book-info">
+    <div class="book-columns row">
+        <div class="book-info col-sm-4">
             <div class="book-title">{{title}} </div>
             <h3>{{authorEnglish()}} {{'('+ (date | date:'yyyy')+')'}}</h3>
             <!-- <img class="book-image" src={{smallThumbnail}}> -->
             <img class="book-image" src={{thumbnail}}>
         </div>
-        <div class="action-to-read">
-            <button *ngIf="!userWantsToRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
-            <button *ngIf="userWantsToRead" (click)="wantToRead(true)" class="action-button read-button" mat-raised-button>Remove Me</button>
-            <button (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+        <div class="action-to-read col-sm-4">
+            <button *ngIf="!userWantsToRead && !userHasRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
+            <ng-container *ngIf="userWantsToRead">
+                You Want To Read This &nbsp; 
+                <button (click)="wantToRead(true)" class="action-button read-button" mat-raised-button>Cancel</button>
+            </ng-container>
+            <button *ngIf="!userHasRead" (click)="haveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
+            <ng-container *ngIf="userHasRead">
+                You Read This &nbsp; 
+                <button (click)="haveRead(true)" class="action-button read-button" mat-raised-button>Cancel</button>
+            </ng-container>
+            <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
 
             <ul class="basic-instructions">
                 <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
@@ -18,7 +26,7 @@
             </ul>
 
         </div>
-        <div class="want-to-read">
+        <div class="want-to-read col-sm-4">
             <div class="buddies">
                 <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
                 <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
