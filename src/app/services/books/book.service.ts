@@ -83,14 +83,33 @@ export class BookService {
       bookType: BookType.wantToRead,
       note
     }
-    return this.http.put(`${environment.apiUrl}/Book/want_to_read`,userBookDto).pipe(catchError(err => {
+    return this.http.put(`${environment.apiUrl}/Book/read_status`,userBookDto).pipe(catchError(err => {
       console.log('error saving new book preference: ', err.status, '-', err.error);
       return throwError(() => new Error('Something went wrong adding book to your want to read list. Please try again.'));
     }))
   }
 
+  public updateBookHaveRead(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
+    const userBookDto: UserBookDto = {
+      bookId: book.id,
+      userId,
+      apiBookId,
+      bookType: BookType.read,
+      note
+    }
+    return this.http.put(`${environment.apiUrl}/Book/read_status`,userBookDto).pipe(catchError(err => {
+      console.log('error saving new book preference: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong adding book to list of books you have read. Please try again.'));
+    }))
+  }
+
+
   public deleteBookWantToRead(userId: string, bookId?: string): Observable<DatabaseBook>{
-    return this.http.delete(`${environment.apiUrl}/Book/${userId}/${bookId}`) as Observable<DatabaseBook>
+    return this.http.delete(`${environment.apiUrl}/Book/want_to_read/${userId}/${bookId}`) as Observable<DatabaseBook>
+  }
+
+  public deleteBookHasRead(userId: string, bookId?: string): Observable<DatabaseBook>{
+    return this.http.delete(`${environment.apiUrl}/Book/has_read/${userId}/${bookId}`) as Observable<DatabaseBook>
   }
 
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{
@@ -101,7 +120,7 @@ export class BookService {
     return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
   }
 
-    public getNyTimesEBooksNonFictionBestsellerList(): Observable<NYTimesListResponse>{
+  public getNyTimesEBooksNonFictionBestsellerList(): Observable<NYTimesListResponse>{
     return this.http.get(`${environment.books.nytBooksApi}/current/combined-print-and-e-book-nonfiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
   }
 

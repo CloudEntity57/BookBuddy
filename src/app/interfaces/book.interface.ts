@@ -101,7 +101,8 @@ export interface UserBookDto {
 export enum BookType {
     wantToRead,
     read,
-    favorite
+    favorite,
+    reading
 }
 
 export interface CreateBookDto {

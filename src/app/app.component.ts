@@ -281,6 +281,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     console.log('opening message bar with ', conversation, ' and user ', this.user)
     console.log('active conversations: ', this.activeConversations)
     await this.signalRService.hubConnection.invoke("JoinConversation", conversation.id);
+    console.log('successfully invoked hubConnection JoinConversation action for conversation ', conversation.id)
     this.latestMessages[conversation.id] = null;
     this.signalRService.hubConnection.on("ConversationUpdated", newMessage => {
       newMessage = newMessage as MessageDTO;

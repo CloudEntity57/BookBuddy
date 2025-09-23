@@ -110,6 +110,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
 
   public initiateMessaging(user: BookBuddyUser): void{
     this.progressBarService.startProgressBar();
+    console.log(`the progress bar is running: ${this.progressBarService.isLoading.getValue()}`);
     const user1 = this.userInfo;
     const user2 = user;
     this.subscriptions.push(this.messageService.checkExistingConversation(user1.id, user2.id)

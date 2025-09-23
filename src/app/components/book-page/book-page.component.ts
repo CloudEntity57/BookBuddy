@@ -45,6 +45,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
     public userLoggedIn = false;
     public userWantsToRead: boolean = false;
+    public userHasRead: boolean = false;
     public userInfo: BookBuddyUser = {} as BookBuddyUser;
     private $userInitiated = new Subject<void>();
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
@@ -276,7 +277,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
   }
 
-  public checkIfLoggedIn(){
+  public async checkIfLoggedIn(){
     // check if user logged in
     const isLoggedIn = this.userLoggedIn;
     console.log('user logged in: ', isLoggedIn)
@@ -284,7 +285,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       console.log('USER NOT LOGGED IN');
       const returnUrl = this.router.url;
       localStorage.setItem('returnUrl', returnUrl);
-      this.authService.login();
+      await this.authService.login();
     };
   }
 
@@ -355,6 +356,68 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.userWantsToRead = true;
     this.usersWhoWantToRead.push(this.userInfo);
     this.changeDetector.detectChanges();
+  }
+
+  public haveRead(cancel?: boolean): void {
+    this.progressBarService.startProgressBar();
+    if(cancel){
+      console.log('REMOVING BOOK FROM READ LIST', this.userInfo.id, this.databaseBook?.id)
+      this.subscriptions.push(this.bookService.deleteBookWantToRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
+        console.log('there was an error removing book from read list: ', err);
+        throw(err);
+      })).subscribe(res => {
+        if(res){
+          this.userHasRead = false;
+          this.changeDetector.detectChanges();
+        }
+        this.progressBarService.stopProgressBar();
+      }));
+      return;
+    }
+    this.wantToRead(true);
+    // query against author/title to see if book exists as a work in DB
+    const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
+    const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
+    console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
+    if(!bookAuthor || !bookTitle){
+      console.log('error getting book information, aborting. ');
+      return;
+    }
+    this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle).pipe(
+      catchError(err => {
+        if(err.status === 404){
+          this.checkIfLoggedIn();
+          // book doesn't exist in DB, so create a book instance based on author/title in the DB to associate all future want-to-reads with 
+          console.log('creating new book in DB');
+          const newBook = { author: this.book.volumeInfo.authors[0], title: this.book.volumeInfo.title };
+          this.subscriptions.push(this.bookService.createBookInDatabase(newBook).subscribe(res => {
+            console.log('NEW BOOK CREATED:',res);
+            // add user to list of users who want to read the book
+            const book = res;
+            const userId = this.userInfo.id;
+            const apiBookId = this.apiBookId;
+            this.databaseBook = res;
+            this.bookService.updateBookHaveRead(userId, book, apiBookId).subscribe(created => {
+              this.userHasRead = true;
+              this.progressBarService.stopProgressBar();
+            })
+          }));
+        }
+        this.progressBarService.stopProgressBar();
+        return throwError(() => new Error('Something went wrong. Please try again.'));
+      })
+    ).subscribe(res => {
+      // book already exists in DB, so add user to existing book:
+      const book = res as DatabaseBook;
+      const usersWantToRead = JSON.stringify(book.usersWantToRead);
+      const apiBookId = this.apiBookId;
+      console.log(`res: ${book.title} - ${usersWantToRead}`)
+      this.checkIfLoggedIn();
+      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
+        this.userHasRead = true;
+      }));
+      this.progressBarService.stopProgressBar();
+    }))
   }
 
   public updateUser(){

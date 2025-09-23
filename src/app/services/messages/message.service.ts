@@ -5,13 +5,14 @@ import { HttpClient } from '@angular/common/http';
 import { Conversation, ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { AddMessageDTO, MessageDTO } from '../../interfaces/message.interface';
 import { BookBuddyUser } from '../../interfaces/user.interface';
+import { ProgressBarService } from '../progress-bar.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private progressBarService: ProgressBarService) { }
 
   private streams = new Map<string, BehaviorSubject<any>>();
 
@@ -70,8 +71,14 @@ export class MessageService {
       ).subscribe({
         next: ([firstResp, secondResp, conv]) => {
           console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
+          // add 2 members manually to display conversation name on very first load:
+          conv.members.push(firstResp);
+          conv.members.push(secondResp);
           // Navigate to chat
           this.conversationToStage.next(conv);
+          if(this.progressBarService.isLoading.getValue() === true){
+            this.progressBarService.stopProgressBar();
+          }
           // this.progressBarService.stopProgressBar();
         },
         error: (error) => {
