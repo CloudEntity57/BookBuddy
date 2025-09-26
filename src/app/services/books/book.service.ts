@@ -92,8 +92,8 @@ export class BookService {
   public updateBookHaveRead(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
     const userBookDto: UserBookDto = {
       bookId: book.id,
-      userId,
-      apiBookId,
+      userId: userId,
+      apiBookId: apiBookId,
       bookType: BookType.read,
       note
     }
