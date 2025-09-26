@@ -3,6 +3,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { LandingPageComponent } from './components/landing-page/landing-page.component';
 import { BookPageComponent } from './components/book-page/book-page.component';
 import { BookPageResolver } from './resolvers/book-page-resolver.service';
+import { ProfileComponent } from './components/profile/profile.component';
 
 export const routes: Routes = [
     { path: '', component: LandingPageComponent },
@@ -13,5 +14,9 @@ export const routes: Routes = [
         resolve: {
          book:  BookPageResolver
         }
+    },
+    {
+        path: 'profile',
+        component: ProfileComponent
     }
 ];

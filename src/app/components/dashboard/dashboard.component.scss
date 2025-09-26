@@ -1,5 +1,5 @@
 @use '../../app.component.scss' as app;
-@use '../../../styles.scss';
+@use '../../../styles.scss' as styles;
 
 $dashboard-book-height: 200px;
 $dashboard-book-width: 150px;
@@ -32,4 +32,16 @@ $dashboard-book-width: 150px;
     justify-content: space-around;
     margin-left: 25px;
     font-size: 25px;
+}
+mat-tab-group{
+    mat-tab-body{
+        padding-top: 10px;
+        color: styles.$tertiary-color !important;
+    }
+}
+::ng-deep .mdc-tab__text-label{
+    color: styles.$tertiary-color !important;
+}
+::ng-deep mat-tab-body{
+    margin-top: 10px;
 }

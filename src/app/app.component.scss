@@ -172,6 +172,7 @@ main{
     height: $navbar-height;
 }
 .message-bar-container{
+    z-index: 2;
     display: flex;
     justify-content: flex-end;
     width: 100%;

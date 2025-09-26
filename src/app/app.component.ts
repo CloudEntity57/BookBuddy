@@ -8,7 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
-import { debounceTime, fromEvent, Subject, Subscription, take, takeUntil } from 'rxjs';
+import { debounceTime, filter, fromEvent, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { ProgressBarService } from './services/progress-bar.service';
 import { MessageBarComponent } from './components/message-bar/message-bar.component';
@@ -167,6 +167,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
           default: console.log('no cases match')
         }
       }));
+        this.subscriptions.push(this.router.events.pipe(
+          filter(event => event instanceof NavigationEnd)
+        ).subscribe(()=>{
+          console.log('NAVIGATION CHANGE: UPDATING USER INFO')
+          // update user info
+          this.authService.refreshUserInfo(this.user.id);
+        }));
   }
 
   public checkForUnreadNotifications(){
@@ -275,6 +282,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   }
   public initiateMessaging(notification: Notification){
 
+  }
+
+  public goToProfile(){
+    console.log('going to profile')
+    this.router.navigate(['/profile']);
   }
 
   public async openMessageBar(conversation: Conversation){

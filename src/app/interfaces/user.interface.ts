@@ -23,6 +23,7 @@ export interface BookBuddyUser{
     createdAt?: string,
     lastLoginAt?: string,
     wantToRead?: Array<DatabaseBook>,
+    haveRead?: Array<DatabaseBook>,
     sentBuddyRequests: Array<BookBuddyUser>,
     receivedBuddyRequests: Array<BookBuddyUser>,
     buddies: Array<BookBuddyUser>

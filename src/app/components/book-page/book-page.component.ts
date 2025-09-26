@@ -19,6 +19,7 @@ import { NotificationService } from '../../services/notifications/notification.s
 import { MessageService } from '../../services/messages/message.service';
 import { ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { ImageService } from '../../services/images/image.service';
+import { error } from 'console';
 @Component({
   selector: 'app-book-page',
   imports: [
@@ -43,6 +44,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public buddies: Array<BookBuddyUser> = [];
     public wantToReadAIAgents = wantToReadAIAgents;
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
+    public usersWhoReadBook: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
     public userLoggedIn = false;
     public userWantsToRead: boolean = false;
     public userHasRead: boolean = false;
@@ -197,7 +199,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.route.queryParams.subscribe(params => {
       // clear existing want-to-read column for new data:
       this.usersWhoWantToRead = [];
+      this.usersWhoReadBook = [];
       this.userWantsToRead = false;
+      this.userHasRead = false;
       this.changeDetector?.detectChanges();
       console.log('NEW PARAMS - ', params)
       const bookId = params['id'];
@@ -267,10 +271,20 @@ export class BookPageComponent implements OnInit, OnDestroy{
     if(res) book = res as DatabaseBook;
     console.log('book found in DB: ', book)
     console.log('user info: ', this.userInfo)
-    if(book && book.usersWantToRead?.some(user => user.id === this.userInfo.id)){
+    const user: BookBuddyUser = this.userInfo;
+    if(book && user.wantToRead?.some(bk => bk.id === book.id)){
+    // if(book && book.usersWantToRead?.some(user => user.id === this.userInfo.id)){
       // mark book as on their want to read list
       console.log('book is on user read list')
       this.userWantsToRead = true;
+      this.changeDetector.detectChanges();
+    }else{
+      console.log('book is not on user read list')
+    }
+    if(book && user.haveRead?.some(bk => bk.id === book.id)){
+      // mark book as on their want to read list
+      console.log('book is on user read list')
+      this.userHasRead = true;
       this.changeDetector.detectChanges();
     }else{
       console.log('book is not on user read list')
@@ -290,6 +304,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
 
   public wantToRead(cancel?: boolean): void {
+    console.log('wantToRead initiated')
     this.progressBarService.startProgressBar();
     if(cancel){
       console.log('REMOVING BOOK FROM WANT TO READ LIST', this.userInfo.id, this.databaseBook?.id)
@@ -344,6 +359,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       const apiBookId = this.apiBookId;
       console.log(`res: ${book.title} - ${usersWantToRead}`)
       this.checkIfLoggedIn();
+      console.log('invoking updateBookWantToRead')
       this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
         this.setUserWantsToRead(created);
       }));
@@ -359,10 +375,11 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
 
   public haveRead(cancel?: boolean): void {
+    console.log('haveRead initiating')
     this.progressBarService.startProgressBar();
     if(cancel){
       console.log('REMOVING BOOK FROM READ LIST', this.userInfo.id, this.databaseBook?.id)
-      this.subscriptions.push(this.bookService.deleteBookWantToRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
+      this.subscriptions.push(this.bookService.deleteBookHasRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
         console.log('there was an error removing book from read list: ', err);
         throw(err);
       })).subscribe(res => {
@@ -374,7 +391,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
       }));
       return;
     }
-    this.wantToRead(true);
+    try{
+      this.wantToRead(true);
+    }catch (err){ console.log('error canceling want to read status: ', err )}
     // query against author/title to see if book exists as a work in DB
     const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
     const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
@@ -397,6 +416,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
             const userId = this.userInfo.id;
             const apiBookId = this.apiBookId;
             this.databaseBook = res;
+            console.log('invoking updateBookHaveRead')
             this.bookService.updateBookHaveRead(userId, book, apiBookId).subscribe(created => {
               this.userHasRead = true;
               this.progressBarService.stopProgressBar();
@@ -413,7 +433,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       const apiBookId = this.apiBookId;
       console.log(`res: ${book.title} - ${usersWantToRead}`)
       this.checkIfLoggedIn();
-      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
+      this.subscriptions.push(this.bookService.updateBookHaveRead(this.userInfo.id, book, apiBookId).subscribe(created => {
         this.userHasRead = true;
       }));
       this.progressBarService.stopProgressBar();

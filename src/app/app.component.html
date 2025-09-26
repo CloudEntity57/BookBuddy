@@ -33,7 +33,7 @@
               </div>
                 <mat-menu class="navbar-dropdown"
                 (mouseleave)="onMouseLeave(menuTrigger)" #userMenu="matMenu">
-                  <div mat-menu-item>Manage Profile</div>
+                  <div (click)="goToProfile()" mat-menu-item>Manage Account & Profile</div>
                   <div (click)="logout()" mat-menu-item>Log Out</div>
                 </mat-menu>
              </ng-container>
