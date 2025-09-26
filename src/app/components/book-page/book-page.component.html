@@ -10,12 +10,12 @@
             <button *ngIf="!userWantsToRead && !userHasRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
             <ng-container *ngIf="userWantsToRead">
                 You Want To Read This &nbsp; 
-                <button (click)="wantToRead(true)" class="action-button read-button" mat-raised-button>Cancel</button>
+                <button (click)="wantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
             </ng-container>
             <button *ngIf="!userHasRead" (click)="haveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
             <ng-container *ngIf="userHasRead">
                 You Read This &nbsp; 
-                <button (click)="haveRead(true)" class="action-button read-button" mat-raised-button>Cancel</button>
+                <button (click)="haveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
             </ng-container>
             <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
 
