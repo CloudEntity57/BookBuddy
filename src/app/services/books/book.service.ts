@@ -15,12 +15,14 @@ export class BookService {
   // public api_type = "openLibrary";
 
 
-  public bookSearch(val: string, api_type: string) : Observable<Array<GoogleBookInfo | OpenLibraryBookSearchInfo>> {
+  public bookSearch(val: string, api_type: string, search_type: string = 'title') : Observable<Array<GoogleBookInfo | OpenLibraryBookSearchInfo>> {
 
-
+    let googleSearchString: string = '';
+    if(search_type === 'title' || 'author') googleSearchString = `${environment.books.googleBookSearchApi}in${search_type}:${val}`;
+    if(search_type === 'both') googleSearchString = `${environment.books.googleBookSearchApi}inauthor:${val}`;
     /* For Google Books API: **/
     if(api_type === "google"){
-      return this.http.get<GoogleBookSearchResults>(`${environment.books.googleBookSearchApi}intitle:${val}`).pipe(
+      return this.http.get<GoogleBookSearchResults>(googleSearchString).pipe(
         map(res => res?.items?.map(a => {
           a.source = "google"; return a;
         }))

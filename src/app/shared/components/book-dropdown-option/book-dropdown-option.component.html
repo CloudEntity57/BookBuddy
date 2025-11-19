@@ -1,26 +1,62 @@
 
 
 <div class="landing-search-container">
-        <form [formGroup]="book_form">
-            <input matInput type="text" [matAutocomplete]="auto" formControlName="book_search" [class]= "dropdown_type" class="search form-control"  placeholder={{dropdown_text}}>
-            <mat-autocomplete #auto="matAutocomplete">
+    <form [formGroup]="book_form">
+        <!-- <mat-form-field> -->
+            <input #bookBuddySearchInput matInput type="text" [matAutocomplete]="auto" formControlName="book_search" [class]= "dropdown_type" class="search form-control" placeholder={{dropdown_text}}>
+            <!-- Suffix caret icon -->
+                <mat-icon *ngIf="!displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(false)" tabindex="-1">expand_more</mat-icon>
+                <mat-icon *ngIf="displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(true)" tabindex="-1">expand_less</mat-icon>
+                <mat-icon *ngIf="searchChoice && book_form.get('book_search')?.value.length" class="search-icon" matSuffix (click)="search()" tabindex="-1">search</mat-icon>
+            <mat-autocomplete  #auto="matAutocomplete">
+                <ng-container >
+                    <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="handleBookSelect(book_option)">
+                        <div class="options-container">
+                            <ng-container *ngIf="book_option.source === 'google' && formSubmitted && !book_form.pristine">
+                                <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+                                <div class="text-container">
+                                    {{book_option.volumeInfo.authors + ': ' + book_option.volumeInfo.title + 'doink'}}
+                                </div>
+                            </ng-container>
+                            <ng-container *ngIf="book_option.source === 'openLibrary'">
+                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+                                <div class="text-container">
+                                    {{book_option.author_name + ': ' + book_option.title}}
+                                </div>
+                            </ng-container>
+                        </div>
+                    </mat-option>
+                </ng-container>
                 <!-- <app-book-dropdown-option [books_input]="bookList"></app-book-dropdown-option> -->
-                <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="goToBookPage(book_option)">
-                    <div class="options-container">
-                        <ng-container *ngIf="book_option.source === 'google'">
-                            <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
-                            <div class="text-container">
-                                {{book_option.volumeInfo.authors + ': ' + book_option.volumeInfo.title}}
-                            </div>
-                        </ng-container>
-                        <ng-container *ngIf="book_option.source === 'openLibrary'">
-                             <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
-                            <div class="text-container">
-                                {{book_option.author_name + ': ' + book_option.title}}
-                            </div>
-                        </ng-container>
-                    </div>
-                </mat-option>
-            </mat-autocomplete>
-        </form>
+            </mat-autocomplete> 
+            <!-- <ng-container *ngIf="searchChoice">
+                <mat-select *ngIf="formSubmitted && book_form.get('book_search')?.value.length>0">
+                    <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="handleBookSelect(book_option)">
+                        <div class="options-container">
+                            <ng-container *ngIf="book_option.source === 'google'">
+                                <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+                                <div class="text-container">
+                                    {{book_option.volumeInfo.authors + ': ' + book_option.volumeInfo.title}}
+                                </div>
+                            </ng-container>
+                            <ng-container *ngIf="book_option.source === 'openLibrary'">
+                                    <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
+                                <div class="text-container">
+                                    {{book_option.author_name + ': ' + book_option.title}}
+                                </div>
+                            </ng-container>
+                        </div>
+                    </mat-option>   
+                </mat-select>
+            </ng-container>     -->
+        <!-- </mat-form-field> -->
+
+    </form>
+    <div *ngIf="displayChoicesModal" class="choicesModal">
+        <mat-button-toggle-group [(ngModel)]="searchChoice" (change)="handleSearchTypeSelection()" name="searchChoice" aria-label="Search By">
+            <mat-button-toggle matTooltip="Search by author" value="author">Author</mat-button-toggle>
+            <mat-button-toggle matTooltip="Search by title" value="title">Title</mat-button-toggle>
+            <mat-button-toggle matTooltip="Search by author, title" value="both">Both</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
 </div>

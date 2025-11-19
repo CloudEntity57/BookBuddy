@@ -5,6 +5,7 @@ $right-controls-spacing: 15px;
 
 .landing-search-container{
     // padding-top: 30px;
+    position: relative;
     display: flex;
     justify-content: center;
     .landing-search{
@@ -30,6 +31,33 @@ $right-controls-spacing: 15px;
         margin-right:$right-controls-spacing;
         border-radius: 25px;
     }
+}
+form{
+    position: relative;
+}
+.form-control{
+    padding-right: 65px !important;
+}
+.down-caret{
+    color: #000 !important;
+    position: absolute;
+    top: 25%;
+    right: 10px;
+    cursor: pointer;
+}
+.search-icon{
+    color: #000 !important;
+    position: absolute;
+    top: 25%;
+    right: 35px;
+    cursor: pointer;
+}
+
+.choicesModal{
+    border-radius: 25px;
+    background-color: styles.$tertiary-color;
+    position: absolute;
+    top: 45px;
 }
 .book-thumbnail{
     display: inline-block;
@@ -61,4 +89,7 @@ $right-controls-spacing: 15px;
         width: 100%;
     }
 
+}
+::ng-deep mat-select{
+    position: absolute;
 }
