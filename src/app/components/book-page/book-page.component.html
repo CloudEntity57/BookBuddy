@@ -36,7 +36,7 @@
                     </span>
 
                     <!-- send a buddy request -->
-                    <span *ngIf="(user.id != userInfo.id) && !isExistingBuddy(user.id, buddies) && !buddyRequestSent(userInfo.sentBuddyRequests, user) && !buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
+                    <span *ngIf="(buddies && user.id != userInfo.id) && !isExistingBuddy(user.id, buddies) && !buddyRequestSent(userInfo.sentBuddyRequests, user) && !buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
 
                     <!-- cancel the buddy request -->
                     <span *ngIf="(user.id != userInfo.id) && buddyRequestSent(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Cancel</button></span>
@@ -50,7 +50,7 @@
                     </mat-menu>
                     
                     <!-- message an existing buddy -->
-                    <span *ngIf="(user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="initiateMessaging(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
+                    <span *ngIf="(buddies && user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="initiateMessaging(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
 
                  </div>
                 <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>

@@ -20,6 +20,9 @@ import { MessageService } from '../../services/messages/message.service';
 import { ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { ImageService } from '../../services/images/image.service';
 import { error } from 'console';
+import { Store } from '@ngrx/store';
+import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
+import { buddiesUpdated } from '../../services/auth/store/auth.actions';
 @Component({
   selector: 'app-book-page',
   imports: [
@@ -34,14 +37,17 @@ import { error } from 'console';
 })
 export class BookPageComponent implements OnInit, OnDestroy{
     public userImageService!: ImageService;
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef){
+    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef, private store: Store){
       this.userImageService = imageService;
     }
     
+    public $isLoggedIn!: Observable<boolean>;
+    public $buddies!: Observable<Array<BookBuddyUser> | null>;
+    public $userInfo!: Observable<BookBuddyUser | null>;
     public api_type = environment.books.bookByIdApi;
     public requestNote: string = ''
     readonly dialog = inject(MatDialog);
-    public buddies: Array<BookBuddyUser> = [];
+    public buddies!: Array<BookBuddyUser> | null;
     public wantToReadAIAgents = wantToReadAIAgents;
     public usersWhoWantToRead: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
     public usersWhoReadBook: Array<BookBuddyUser> = [] as Array<BookBuddyUser>
@@ -72,49 +78,47 @@ export class BookPageComponent implements OnInit, OnDestroy{
   }
   ngOnInit(): void {
     console.log('INIT NEW BOOK PAGE')
-    this.subscriptions.push(
-      this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
+    this.$isLoggedIn = this.store.select(selectIsLoggedIn);
+    this.$buddies = this.store.select(selectBuddies);
+    this.$userInfo = this.store.select(selectUserInfo);
+    // this.subscriptions.push(
+       const userInfo = this.store.select(selectUserInfo);
+      // this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
+      this.subscriptions.push(this.$userInfo.subscribe(userInfo => {
         if(userInfo && userInfo.id && !this.userInfo.id){
         this.progressBarService.startProgressBar();
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
           this.userLoggedIn = true;
           // retrieve buddy list
-          this.subscriptions.push(this.buddyService.getBuddies(this.userInfo.id).subscribe({
-            next: buddies => {
-              this.buddies = buddies;
-              this.progressBarService.stopProgressBar();
-            },
-            error: err => {
-              console.log('error retrieving buddies: ', err)
-            }
+          this.subscriptions.push(this.$buddies.subscribe(buddies => {
+            this.buddies = buddies;
+            console.log('book page loaded buddies: ', this.buddies)
+            this.progressBarService.stopProgressBar();
+            this.changeDetector.detectChanges();
           }));
-          this.$userInitiated.next();
           this.changeDetector?.detectChanges();
           this.processBookData();
         }else{
+          console.log('resetting page defaults on book page')
           this.resetPageDefaults();
           this.changeDetector?.detectChanges();
         }
-      })
-    );
+      }));
     this.subscriptions.push(this.authService.userInfo.subscribe(userInfo => {
       if(this.userInfo && this.userInfo.id){
         this.userInfo = userInfo;
         this.changeDetector.detectChanges();
       }
     }));
-    this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
+    this.subscriptions.push(this.$isLoggedIn.subscribe(login => {
       if(!login){
+        console.log('resetting page defaults');
         this.resetPageDefaults();
         this.changeDetector?.detectChanges();
       }
     }));
-    this.subscriptions.push(this.buddyService.$buddies.subscribe(buddies => {
-      this.updateUser();
-      this.buddies = buddies;
-      this.changeDetector.detectChanges();
-    }));
+
 
     if(!this.userLoggedIn){
       this.processBookData();
@@ -128,6 +132,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
   public resetPageDefaults(): void {
     this.userWantsToRead = false;
     this.userLoggedIn = false;
+    this.buddies = [];
     this.userInfo = {} as BookBuddyUser;
   }
 

@@ -8,7 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
-import { debounceTime, filter, fromEvent, Subject, Subscription, take, takeUntil } from 'rxjs';
+import { debounceTime, filter, fromEvent, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { ProgressBarService } from './services/progress-bar.service';
 import { MessageBarComponent } from './components/message-bar/message-bar.component';
@@ -21,6 +21,9 @@ import { MessageService } from './services/messages/message.service';
 import { SignalRService } from './services/signalR/signal-r.service';
 import { MessageDTO } from './interfaces/message.interface';
 import { ImageService } from './services/images/image.service';
+import { Store } from '@ngrx/store';
+import { selectIsLoggedIn } from './services/auth/store/auth.selectors';
+import { buddiesUpdated, loadBuddies, userInfoUpdated } from './services/auth/store/auth.actions';
 
 
 @Component({
@@ -41,7 +44,7 @@ import { ImageService } from './services/images/image.service';
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public userImageService!: ImageService;
-  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService){
+  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService, private store: Store){
     this.userImageService = imageService;
   }
   NotificationType = NotificationType;
@@ -59,9 +62,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public activeConversations: Array<Conversation> = [];
   public latestMessages: any = {};
   private $userReceived = new Subject<void>();
+  private $loggedIn!: Observable<boolean>;
 
   ngOnInit(): void {
-    this.subscriptions.push(this.authService.$isLoggedIn.subscribe((loggedIn)=>{
+    this.$loggedIn = this.store.select(selectIsLoggedIn);
+    this.subscriptions.push(this.$loggedIn.subscribe((loggedIn)=>{
       if(loggedIn === true){
         this.isLoggedIn = true;
         this.changeDetector.detectChanges();
@@ -69,6 +74,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
           this.authService.userInfo.pipe(takeUntil(this.$userReceived)).subscribe(userInfo => {
             console.log('on init db profile: ', userInfo);
             this.user = userInfo;
+            this.store.dispatch(userInfoUpdated({userInfo}));
             // populate the user icon 
             this.userIconURL = userInfo.avatarUrl;
             console.log('user icon url: ', this.userIconURL)
@@ -81,10 +87,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
                   this.notifications = res;
                   this.checkForUnreadNotifications()
                 }
-              }));  
+              }));
+              // get buddies
+              this.store.dispatch(loadBuddies({userId: userInfo.id}));
+              console.log('dispatched get buddies action for global state');
             }
-
-
             this.changeDetector.detectChanges();
           })
         })

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BuddyService } from '../../services/buddies/buddy.service';
-import { filter, Subject, Subscription, takeUntil } from 'rxjs';
+import { filter, Observable, Subject, Subscription, takeUntil } from 'rxjs';
 import { BookBuddyUser } from '../../interfaces/user.interface';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { AuthService } from '../../services/auth/auth.service';
@@ -12,6 +12,8 @@ import { NavigationEnd, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MessageService } from '../../services/messages/message.service';
+import { Store } from '@ngrx/store';
+import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,38 +29,40 @@ import { MessageService } from '../../services/messages/message.service';
 export class DashboardComponent implements OnInit, OnDestroy{
   public $userInitiated = new Subject<void>();
   public userImageService!: ImageService;
-  constructor(private router: Router, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private bookService: BookService, private messageService: MessageService ){ 
+
+  constructor(private router: Router, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private bookService: BookService, private messageService: MessageService, private store: Store ){ 
     this.userImageService = imageService
   }
+  public $loggedIn!: Observable<boolean>;
+  public $userInfo!: Observable<BookBuddyUser | null>;
+  public $buddies!: Observable<Array<BookBuddyUser> | null>;
   private subscriptions: Array<Subscription> = [];
-  public buddies: Array<BookBuddyUser> = [];
+  public buddies!: Array<BookBuddyUser> | null;
   public userInfo: BookBuddyUser = {} as BookBuddyUser;
   public userLoggedIn: boolean = false;
   public wantToReadList: Array<any> = [];
   public haveReadList: Array<any> = [];
   ngOnInit(): void {
+    this.$loggedIn = this.store.select(selectIsLoggedIn);
+    this.$userInfo = this.store.select(selectUserInfo);
+    this.$buddies = this.store.select(selectBuddies);
      console.log('INIT NEW Landing PAGE')
         this.subscriptions.push(
-          this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
+          this.$userInfo.subscribe(userInfo => {
+            console.log('getting user info from store: ', userInfo)
             if(userInfo && userInfo.id && !this.userInfo.id){
-            this.progressBarService.startProgressBar();
-              console.log('landingpage init db profile: ', userInfo);
+              this.progressBarService.startProgressBar();
+              console.log('dashboard init db profile: ', userInfo);
               this.userInfo = userInfo;
               this.userLoggedIn = true;
               this.updateUserDashboardItems(userInfo)
               // retrieve buddy list
-              this.subscriptions.push(this.buddyService.getBuddies(this.userInfo.id).subscribe({
-                next: buddies => {
-                  this.buddies = buddies;
-                  console.log('landing page loaded buddies: ', this.buddies)
-                  this.progressBarService.stopProgressBar();
-                },
-                error: err => {
-                  console.log('error retrieving buddies: ', err)
-                }
+              this.subscriptions.push(this.$buddies.subscribe(buddies => {
+                this.buddies = buddies;
+                console.log('dashboard loaded buddies from store: ', this.buddies)
+                this.progressBarService.stopProgressBar();
+                this.changeDetector.detectChanges();
               }));
-              this.$userInitiated.next();
-              this.changeDetector?.detectChanges();
             }else{
               this.resetPageDefaults();
               this.changeDetector?.detectChanges();
@@ -67,16 +71,16 @@ export class DashboardComponent implements OnInit, OnDestroy{
         );
     
     //  
-    this.subscriptions.push(this.authService.$isLoggedIn.subscribe(login => {
+    this.subscriptions.push(this.$loggedIn.subscribe(login => {
       if(!login){
         this.resetPageDefaults();
         this.changeDetector?.detectChanges();
       }
     }));
-    this.subscriptions.push(this.buddyService.$buddies.subscribe(buddies => {
-      this.buddies = buddies;
-      this.changeDetector.detectChanges();
-    }));
+    // this.subscriptions.push(this.buddyService.$buddies.subscribe(buddies => {
+    //   this.buddies = buddies;
+    //   this.changeDetector.detectChanges();
+    // }));
   }
 
   public ngOnDestroy(): void {

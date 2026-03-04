@@ -7,13 +7,15 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { NotificationService } from '../notifications/notification.service';
 import { SignalRService } from '../signalR/signal-r.service';
+import { Store } from '@ngrx/store';
+import { loginSuccess, logoutSuccess, userInfoUpdated } from './store/auth.actions';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private signalRService: SignalRService) {
+  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private signalRService: SignalRService, private store: Store) {
     this.configure();
   }
 
@@ -26,7 +28,9 @@ export class AuthService {
 
   public logout() {
     this.userInfo.next({} as BookBuddyUser);
-    this.$isLoggedIn.next(false);
+    // this.$isLoggedIn.next(false);
+    this.store.dispatch(userInfoUpdated({userInfo: null}));
+    this.store.dispatch(logoutSuccess({isLoggedIn: false}));
     this.oAuthService.logOut();
   }
 
@@ -39,11 +43,12 @@ export class AuthService {
     }).then(_ => {
       if(this.oAuthService.hasValidIdToken()){
         console.log('has valid token')
-        this.$isLoggedIn.next(true);
+        // this.$isLoggedIn.next(true);
+        this.store.dispatch(loginSuccess({isLoggedIn: true}));
       }
       else{
         console.log('nobody is logged in')
-        this.$isLoggedIn.next(false);
+        // this.$isLoggedIn.next(false);
       }
       this.oAuthService.setupAutomaticSilentRefresh();
     })
