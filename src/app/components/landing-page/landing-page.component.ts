@@ -73,24 +73,24 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
         this.changeDetector.detectChanges();
         // convert nyt book info into google book info:
         let googleBestsellers = [];
-        this.nyTimesBestsellers.forEach(book => {
-          const author = book.author;
-          const title = book.title;
-          this.subscriptions.push(this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).subscribe({
-            next: googleBookResp => {
-              // console.log('google nyt book: ', googleBookResp.items[0])
-              let googleBook = googleBookResp.items[0];
-              if(googleBook){
-                googleBook.source = 'google';
-              }else{
-                console.log('no google version of this book was found')
-              }
-              googleBestsellers.push(googleBook);
-              book.googleBooksVersion = googleBook;
-            },
-            error: error => console.log('error getting google nyt book: ', error)
-          }));
-        });
+        // this.nyTimesBestsellers.forEach(book => {
+        //   const author = book.author;
+        //   const title = book.title;
+        //   this.subscriptions.push(this.bookService.convertNytToGoogle(book).subscribe({
+        //     next: googleBookResp => {
+        //       // console.log('google nyt book: ', googleBookResp.items[0])
+        //       let googleBook = googleBookResp.items[0];
+        //       if(googleBook){
+        //         googleBook.source = 'google';
+        //       }else{
+        //         console.log('no google version of this book was found')
+        //       }
+        //       googleBestsellers.push(googleBook);
+        //       book.googleBooksVersion = googleBook;
+        //     },
+        //     error: error => console.log('error getting google nyt book: ', error)
+        //   }));
+        // });
       },
       error: error => console.log('error retrieving ny times bestseller list: ', error)
     }));
@@ -102,24 +102,24 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
         this.changeDetector.detectChanges();
         // convert nyt book info into google book info:
         let googleBestsellers = [];
-        this.combinedPrintAndEbookBestsellers.forEach(book => {
-          const author = book.author;
-          const title = book.title;
-          this.subscriptions.push(this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).subscribe({
-            next: googleBookResp => {
-              // console.log('google nyt book: ', googleBookResp.items[0])
-              let googleBook = googleBookResp && googleBookResp.items ? googleBookResp.items[0] : null;
-              if(googleBook){
-                googleBook.source = 'google';
-                googleBestsellers.push(googleBook);
-                book.googleBooksVersion = googleBook;
-              }else{
-                console.log('no google version of this book was found')
-              }
-            },
-            error: error => console.log('error getting google nyt ebook: ', error)
-          }));
-        });
+        // this.combinedPrintAndEbookBestsellers.forEach(book => {
+        //   const author = book.author;
+        //   const title = book.title;
+        //   this.subscriptions.push(this.bookService.convertNytToGoogle(book).subscribe({
+        //     next: googleBookResp => {
+        //       // console.log('google nyt book: ', googleBookResp.items[0])
+        //       let googleBook = googleBookResp && googleBookResp.items ? googleBookResp.items[0] : null;
+        //       if(googleBook){
+        //         googleBook.source = 'google';
+        //         googleBestsellers.push(googleBook);
+        //         book.googleBooksVersion = googleBook;
+        //       }else{
+        //         console.log('no google version of this book was found')
+        //       }
+        //     },
+        //     error: error => console.log('error getting google nyt ebook: ', error)
+        //   }));
+        // });
       },
       error: error => console.log('error retrieving ny times e-books bestseller list: ', error)
     }));
@@ -157,6 +157,24 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
 
   public searchKeystroke(event: any){
     console.log(`event: ${event}`)
+  }
+
+  public routeSelectionToBookPage(book: NyTimesBook){
+    this.subscriptions.push(this.bookService.convertNytToGoogle(book).subscribe({
+      next: googleBookResp => {
+        // console.log('google nyt book: ', googleBookResp.items[0])
+        let googleBook = googleBookResp.items[0];
+        googleBook.source = 'google';
+        if(googleBook){
+          googleBook.source = 'google';
+          this.goToBookPage(googleBook);
+        }else{
+          console.log('no google version of this book was found')
+        }
+      },
+      error: error => console.log('error getting google nyt book: ', error)
+    }));
+
   }
 
 

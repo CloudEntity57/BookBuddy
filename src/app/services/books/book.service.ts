@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, of, shareReplay, tap, throwError } from 'rxjs';
-import { BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
+import { BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookResponse, GoogleBookSearchResults, NyTimesBook, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
 
 
@@ -133,6 +133,13 @@ export class BookService {
       map(list => list as NYTimesListResponse),
       shareReplay(1)
     ) as Observable<NYTimesListResponse>;
+  }
+
+  public convertNytToGoogle(book: NyTimesBook): Observable<GoogleBookResponse>{
+    return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
+      map(list => list as GoogleBookResponse),
+      shareReplay(1)
+    )
   }
 
 }
