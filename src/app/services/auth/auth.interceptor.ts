@@ -8,9 +8,9 @@ export class AuthInterceptor implements HttpInterceptor {
 private readonly apiUrl = environment.apiUrl;
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    console.log('REQ URL: ', req.url)
+    // console.log('REQ URL: ', req.url)
     const isApiRequest = req.url.startsWith(this.apiUrl) || req.url.startsWith(environment.hubsUrl);
-    console.log(isApiRequest ? 'IT IS AN API REQUEST' : 'it aint an api request')
+    // console.log(isApiRequest ? 'IT IS AN API REQUEST' : 'it aint an api request')
     let token: string | null = null;
     let userGuid: string | null = null;
 

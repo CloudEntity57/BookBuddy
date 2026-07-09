@@ -38,7 +38,7 @@ export class AuthService {
     console.log('configuring oauth')
     this.oAuthService.configure(googleAuthConfig);
     this.oAuthService.loadDiscoveryDocumentAndTryLogin({
-        customRedirectUri:'http://localhost:4200',
+        customRedirectUri: environment.ssr ? 'http://localhost:4000' : 'http://localhost:4200',
         disableOAuth2StateCheck: true
     }).then(_ => {
       if(this.oAuthService.hasValidIdToken()){
@@ -68,6 +68,7 @@ export class AuthService {
   }
 
   public refreshUserInfo(userId: string): void{
+    if(!userId || userId == undefined) return;
     this.getUserById(userId).subscribe({
       next: user => {
         if(!user){

@@ -29,7 +29,7 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
   @ViewChild('bookBuddySearchInput', { static: true }) searchInputElement!: ElementRef;
   public searchOption: string | null = null;
   public displayChoicesModal: boolean = false;
-  public searchChoice?: string;
+  public searchChoice: string = 'both';
   public formSubmitted: boolean = false;
 
   fb = inject(FormBuilder);
@@ -133,7 +133,7 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
       }),
       filter(term => term?.length >= 3),
       distinctUntilChanged(),
-      switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi))
+      switchMap(res => this.bookService.bookSearch(res, environment.books.bookSearchApi, this.searchChoice))
     ).pipe(
       catchError(error => {
         console.log('error: ', error);

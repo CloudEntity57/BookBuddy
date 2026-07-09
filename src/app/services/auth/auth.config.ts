@@ -4,7 +4,7 @@ import { AuthConfig } from 'angular-oauth2-oidc';
 export const googleAuthConfig: AuthConfig = {
     issuer: 'https://accounts.google.com',
     strictDiscoveryDocumentValidation: false,
-    redirectUri: 'http://localhost:4200',
+    redirectUri: environment.ssr ? 'http://localhost:4000' : 'http://localhost:4200',
     clientId: `${environment.oauthClientId}`,
     // set the scope for the permissions the client should request
     // The first four are defined by OIDC.
@@ -15,7 +15,7 @@ export const googleAuthConfig: AuthConfig = {
     responseType: 'code',
     showDebugInformation: true,
     useSilentRefresh: false,
-    silentRefreshRedirectUri: 'http://localhost:4200' + '/silent-refresh.html',
+    silentRefreshRedirectUri: environment.ssr ? 'http://localhost:4000' + '/silent-refresh.html' : 'http://localhost:4200' + '/silent-refresh.html',
     timeoutFactor: 0.75,
     sessionChecksEnabled: true,
     // useHttpBasicAuth: false,
