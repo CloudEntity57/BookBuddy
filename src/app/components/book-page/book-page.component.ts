@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, forkJoin, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
@@ -19,7 +19,7 @@ import { NotificationService } from '../../services/notifications/notification.s
 import { MessageService } from '../../services/messages/message.service';
 import { ConversationMember, CreateConversationDto } from '../../interfaces/conversation.interface';
 import { ImageService } from '../../services/images/image.service';
-import { error } from 'console';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
 import { buddiesUpdated } from '../../services/auth/store/auth.actions';
@@ -37,10 +37,17 @@ import { buddiesUpdated } from '../../services/auth/store/auth.actions';
 })
 export class BookPageComponent implements OnInit, OnDestroy{
     public userImageService!: ImageService;
-    constructor(private router: Router, private route: ActivatedRoute, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef, private store: Store){
+    constructor(private router: Router, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef, private store: Store){
       this.userImageService = imageService;
+      effect(() => {
+        const id = this.bookId();
+        if(id){
+          this.processBookData();
+        }
+      })
     }
     
+    route = inject(ActivatedRoute);
     public $isLoggedIn!: Observable<boolean>;
     public $buddies!: Observable<Array<BookBuddyUser> | null>;
     public $userInfo!: Observable<BookBuddyUser | null>;
@@ -61,10 +68,15 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public book!: GoogleBookInfo;
     public work!: OpenLibraryWorkInfo;
     public apiBookId: string = '';
+    public bookId = toSignal(this.route.queryParams.pipe(
+      map(params => params['id'])
+    ),
+    {initialValue: ''});
+
     // public author?: Array<string> = this.api_type == "openLibrary" ? this.work?.subject_people : this.book?.volumeInfo?.authors;
     public get title() { return this.api_type == "openLibrary" ? this.work?.title :  this.book?.volumeInfo?.title };
     public get date(){ return this.api_type == "openLibrary" ? this.work?.created.value : this.book?.volumeInfo?.publishedDate};
-    public get description() { return this.api_type == "openLibrary" ? ( typeof this.work.description == 'object' ? this.work.description.value : this.work.description) : this.book?.volumeInfo?.description};
+    public get description() { return this.api_type == "openLibrary" ? ( typeof this.work?.description == 'object' ? this.work?.description?.value : this.work?.description) : this.book?.volumeInfo?.description};
     public authorEnglish = signal('');
     public subscriptions: Array<Subscription> = [];
     public get smallImageLink(){ return this.api_type == "openLibrary" ? this.work.title :  this.book.volumeInfo?.title };
@@ -98,7 +110,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
             this.changeDetector.detectChanges();
           }));
           this.changeDetector?.detectChanges();
-          this.processBookData();
+          // this.processBookData();
         }else{
           console.log('resetting page defaults on book page')
           this.resetPageDefaults();
@@ -201,55 +213,53 @@ export class BookPageComponent implements OnInit, OnDestroy{
   // }
 
   public processBookData(){
-    this.route.queryParams.subscribe(params => {
-      // clear existing want-to-read column for new data:
-      this.usersWhoWantToRead = [];
-      this.usersWhoReadBook = [];
-      this.userWantsToRead = false;
-      this.userHasRead = false;
-      this.changeDetector?.detectChanges();
-      console.log('NEW PARAMS - ', params)
-      const bookId = params['id'];
-      this.apiBookId = bookId;
-      console.log('BOOK ID = ',bookId)
-      this.subscriptions.push(this.bookService.getAPIBookById(bookId!, environment.books.bookByIdApi).subscribe(book => {
-            if(this.api_type === "google" && book.source === "google") this.book = book;
-            else if(this.api_type === "openLibrary" && book.source === "openLibrary") this.work = book;
-            if(this.api_type === "openLibrary"){
-              this.getAuthors(this.work);
-            }
-            if(this.api_type === "google"){
-              this.getAuthors(this.book);
-            }                
-            // query against author/title to see if book exists as a work in DB
-            const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
-            const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
-            console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
-            this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle)
-              .pipe(catchError(err => {
-                this.userWantsToRead = false;
-                this.changeDetector.detectChanges;
-                console.log('book not found - ergo user doesnt want to read', err);
-                throw(err);
-              })).subscribe(res => {
-                console.log(`res: ${res}`)
-                // save database book info
-                console.log(`saving ${res.title} as this.databaseBook`)
-                this.databaseBook = res as DatabaseBook;
-                // populate want to read column with users who want to read:
-                this.usersWhoWantToRead = res.usersWantToRead;
-                // if user is logged in, check if book is on their read list:
-                if(this.userLoggedIn){
-                  console.log('user logged in')
-                  this.checkIfBookOnUserReadList(res);
-                }else{
-                  console.log('user not logged in')
-                }
-                // this.progressBarService.stopProgressBar();
-              }));
-              this.changeDetector?.detectChanges();
-      }));
-    });
+    // clear existing want-to-read column for new data:
+    this.usersWhoWantToRead = [];
+    this.usersWhoReadBook = [];
+    this.userWantsToRead = false;
+    this.userHasRead = false;
+    this.changeDetector?.detectChanges();
+    // console.log('NEW PARAMS - ', params)
+    // const bookId = params['id'];
+    this.apiBookId = this.bookId() as string;
+    console.log('BOOK ID = ',this.apiBookId)
+    this.subscriptions.push(this.bookService.getAPIBookById(this.apiBookId, environment.books.bookByIdApi).subscribe(book => {
+      if(this.api_type === "google" && book.source === "google") this.book = book;
+      else if(this.api_type === "openLibrary" && book.source === "openLibrary") this.work = book;
+      if(this.api_type === "openLibrary"){
+        this.getAuthors(this.work);
+      }
+      if(this.api_type === "google"){
+        this.getAuthors(this.book);
+      }                
+      // query against author/title to see if book exists as a work in DB
+      const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
+      const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
+      console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
+      this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle)
+        .pipe(catchError(err => {
+          this.userWantsToRead = false;
+          this.changeDetector.detectChanges;
+          console.log('book not found - ergo user doesnt want to read', err);
+          throw(err);
+        })).subscribe(res => {
+          console.log(`res: ${res}`)
+          // save database book info
+          console.log(`saving ${res.title} as this.databaseBook`)
+          this.databaseBook = res as DatabaseBook;
+          // populate want to read column with users who want to read:
+          this.usersWhoWantToRead = res.usersWantToRead;
+          // if user is logged in, check if book is on their read list:
+          if(this.userLoggedIn){
+            console.log('user logged in')
+            this.checkIfBookOnUserWantsToReadList(res);
+          }else{
+            console.log('user not logged in')
+          }
+          // this.progressBarService.stopProgressBar();
+        }));
+        this.changeDetector?.detectChanges();
+    }));
   }
 
   public getAuthors(work: OpenLibraryWorkInfo | GoogleBookInfo) : Observable<any>{ 
@@ -260,7 +270,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         if(!authorjson){
           this.authorEnglish.set('no author name found');
         }
-        this.authorEnglish.set( authorjson.personal_name || authorjson.name );
+        this.authorEnglish.set( authorjson?.personal_name || authorjson?.name );
       }));
     }
     if(work.source == 'google'){
@@ -270,7 +280,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     return of("Google Books Author Name")
   };
 
-  public checkIfBookOnUserReadList(res: DatabaseBook){
+  public checkIfBookOnUserWantsToReadList(res: DatabaseBook){
     console.log('checking if book is on read list')
     let book;
     if(res) book = res as DatabaseBook;
@@ -280,7 +290,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     if(book && user.wantToRead?.some(bk => bk.id === book.id)){
     // if(book && book.usersWantToRead?.some(user => user.id === this.userInfo.id)){
       // mark book as on their want to read list
-      console.log('book is on user read list')
+      console.log('book is on user want to read list')
       this.userWantsToRead = true;
       this.changeDetector.detectChanges();
     }else{
@@ -327,8 +337,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
       return;
     }
     // query against author/title to see if book exists as a work in DB
-    const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
-    const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
+    const bookAuthor = encodeURIComponent(this.book?.volumeInfo.authors[0]);
+    const bookTitle = encodeURIComponent(this.book?.volumeInfo.title);
     console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
     if(!bookAuthor || !bookTitle){
       console.log('error getting book information, aborting. ');
@@ -396,12 +406,14 @@ export class BookPageComponent implements OnInit, OnDestroy{
       }));
       return;
     }
-    try{
-      this.wantToRead(true);
-    }catch (err){ console.log('error canceling want to read status: ', err )}
+    if(this.userWantsToRead){
+      try{
+        this.wantToRead(true);
+      }catch (err){ console.log('error canceling want to read status: ', err )}
+    }
     // query against author/title to see if book exists as a work in DB
-    const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
-    const bookTitle = encodeURIComponent(this.book.volumeInfo.title);
+    const bookAuthor = encodeURIComponent(this.book?.volumeInfo.authors[0]);
+    const bookTitle = encodeURIComponent(this.book?.volumeInfo.title);
     console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
     if(!bookAuthor || !bookTitle){
       console.log('error getting book information, aborting. ');

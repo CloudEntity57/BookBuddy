@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, shareReplay, tap, throwError } from 'rxjs';
 import { BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookSearchResults, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
 
@@ -13,13 +13,15 @@ export class BookService {
   constructor(private http: HttpClient) { }
 
   // public api_type = "openLibrary";
+  public googleBooksApiRequests = new BehaviorSubject(0);
+  public nytBooksApiRequests = new BehaviorSubject(0);
 
 
   public bookSearch(val: string, api_type: string, search_type: string = 'title') : Observable<Array<GoogleBookInfo | OpenLibraryBookSearchInfo>> {
 
     let googleSearchString: string = '';
-    if(search_type === 'title' || 'author') googleSearchString = `${environment.books.googleBookSearchApi}in${search_type}:${val}`;
-    if(search_type === 'both') googleSearchString = `${environment.books.googleBookSearchApi}inauthor:${val}`;
+    if(search_type === 'title' || 'author') googleSearchString = `${environment.books.googleBookSearchApi}in${search_type}:${val}&key=${environment.googleBooksAPIKey}`;
+    if(search_type === 'both') googleSearchString = `${environment.books.googleBookSearchApi}${val}&key=${environment.googleBooksAPIKey}`;
     /* For Google Books API: **/
     if(api_type === "google"){
       return this.http.get<GoogleBookSearchResults>(googleSearchString).pipe(
@@ -45,7 +47,7 @@ export class BookService {
   public getAPIBookById(id: string, api_type: string): Observable<GoogleBookInfo | OpenLibraryWorkInfo>{
     /** GOOGLE */
       if(api_type === "google") {
-        return this.http.get<GoogleBookInfo>(`${environment.books.googleBookFetchApi}${id}`).pipe(
+        return this.http.get<GoogleBookInfo>(`${environment.books.googleBookFetchApi}${id}?key=${environment.googleBooksAPIKey}`).pipe(
         map(a => {
           a.source = "google"; 
           console.log(`a: ${a}`)
@@ -119,11 +121,18 @@ export class BookService {
   }
 
   public getNyTimesBestsellerList(): Observable<NYTimesListResponse>{
-    return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
+    return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`).pipe(
+    map(list => list as NYTimesListResponse),
+    shareReplay(1),
+    catchError(err => {console.log('error getting google nyt book: ', err); throw(err)})
+  ) as Observable<NYTimesListResponse>;
   }
 
   public getNyTimesEBooksNonFictionBestsellerList(): Observable<NYTimesListResponse>{
-    return this.http.get(`${environment.books.nytBooksApi}/current/combined-print-and-e-book-nonfiction.json?api-key=${environment.books.nytBooksApiToken}`) as Observable<NYTimesListResponse>;
+    return this.http.get(`${environment.books.nytBooksApi}/current/combined-print-and-e-book-nonfiction.json?api-key=${environment.books.nytBooksApiToken}`).pipe(
+      map(list => list as NYTimesListResponse),
+      shareReplay(1)
+    ) as Observable<NYTimesListResponse>;
   }
 
 }

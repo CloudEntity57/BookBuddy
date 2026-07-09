@@ -7,7 +7,7 @@
             <!-- Suffix caret icon -->
                 <mat-icon *ngIf="!displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(false)" tabindex="-1">expand_more</mat-icon>
                 <mat-icon *ngIf="displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(true)" tabindex="-1">expand_less</mat-icon>
-                <mat-icon *ngIf="searchChoice && book_form.get('book_search')?.value.length" class="search-icon" matSuffix (click)="search()" tabindex="-1">search</mat-icon>
+                <mat-icon *ngIf="searchChoice && book_form.get('book_search')?.value?.length" class="search-icon" matSuffix (click)="search()" tabindex="-1">search</mat-icon>
             <mat-autocomplete  #auto="matAutocomplete">
                 <ng-container >
                     <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="handleBookSelect(book_option)">
@@ -15,7 +15,7 @@
                             <ng-container *ngIf="book_option.source === 'google' && formSubmitted && !book_form.pristine">
                                 <span class="book-thumbnail" [style.background-image]="bookPhotoUrl(book_option)"></span> 
                                 <div class="text-container">
-                                    {{book_option.volumeInfo.authors + ': ' + book_option.volumeInfo.title + 'doink'}}
+                                    {{book_option.volumeInfo.authors + ': ' + book_option.volumeInfo.title}}
                                 </div>
                             </ng-container>
                             <ng-container *ngIf="book_option.source === 'openLibrary'">
