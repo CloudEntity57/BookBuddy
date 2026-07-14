@@ -4,7 +4,7 @@ import { AuthConfig } from 'angular-oauth2-oidc';
 export const googleAuthConfig: AuthConfig = {
     issuer: 'https://accounts.google.com',
     strictDiscoveryDocumentValidation: false,
-    redirectUri: environment.ssr ? 'http://localhost:4000' : 'http://localhost:4200',
+    redirectUri: environment.ssr ? 'http://localhost:4000' : environment.rootUrl,
     clientId: `${environment.oauthClientId}`,
     // set the scope for the permissions the client should request
     // The first four are defined by OIDC.
