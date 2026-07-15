@@ -4,18 +4,18 @@ import { AuthConfig } from 'angular-oauth2-oidc';
 export const googleAuthConfig: AuthConfig = {
     issuer: 'https://accounts.google.com',
     strictDiscoveryDocumentValidation: false,
-    redirectUri: environment.ssr ? 'http://localhost:4000' : environment.rootUrl,
+    redirectUri: environment.rootUrl,
     clientId: `${environment.oauthClientId}`,
     // set the scope for the permissions the client should request
     // The first four are defined by OIDC.
     // Important: Request offline_access to get a refresh token
     // The api scope is a usecase specific one
-    // dummyClientSecret: 'secret',
+    dummyClientSecret: 'secret',
     scope: 'openid profile email https://www.googleapis.com/auth/userinfo.profile',
     responseType: 'code',
     showDebugInformation: true,
     useSilentRefresh: false,
-    silentRefreshRedirectUri: environment.ssr ? 'http://localhost:4000' + '/silent-refresh.html' : 'http://localhost:4200' + '/silent-refresh.html',
+    silentRefreshRedirectUri: environment.rootUrl + '/silent-refresh.html',
     timeoutFactor: 0.75,
     sessionChecksEnabled: true,
     // useHttpBasicAuth: false,

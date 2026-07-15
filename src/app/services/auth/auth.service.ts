@@ -9,7 +9,6 @@ import { NotificationService } from '../notifications/notification.service';
 import { SignalRService } from '../signalR/signal-r.service';
 import { Store } from '@ngrx/store';
 import { loginSuccess, logoutSuccess, userInfoUpdated } from './store/auth.actions';
-import { env } from 'process';
 
 @Injectable({
   providedIn: 'root'
@@ -38,10 +37,7 @@ export class AuthService {
   public async configure(){
     console.log('configuring oauth')
     this.oAuthService.configure(googleAuthConfig);
-    this.oAuthService.loadDiscoveryDocumentAndTryLogin({
-        customRedirectUri: environment.ssr ? 'http://localhost:4000' : environment.rootUrl,
-        disableOAuth2StateCheck: true
-    }).then(_ => {
+    this.oAuthService.loadDiscoveryDocumentAndTryLogin().then(_ => {
       if(this.oAuthService.hasValidIdToken()){
         console.log('has valid token')
         // this.$isLoggedIn.next(true);

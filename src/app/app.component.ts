@@ -174,13 +174,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
           default: console.log('no cases match')
         }
       }));
-        this.subscriptions.push(this.router.events.pipe(
-          filter(event => event instanceof NavigationEnd)
-        ).subscribe(()=>{
-          console.log('NAVIGATION CHANGE: UPDATING USER INFO')
-          // update user info
-          this.authService.refreshUserInfo(this.user.id);
-        }));
+      this.subscriptions.push(this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe(()=>{
+        console.log('NAVIGATION CHANGE: UPDATING USER INFO')
+        // update user info
+        this.authService.refreshUserInfo(this.user.id);
+      }));
   }
 
   public checkForUnreadNotifications(){
