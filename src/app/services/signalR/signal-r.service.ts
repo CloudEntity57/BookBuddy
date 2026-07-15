@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalR';
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({
@@ -16,7 +17,7 @@ export class SignalRService {
     console.log('setting access token in signalR: ', token)
     
     this.hubConnection = new signalR.HubConnectionBuilder()
-    .withUrl(`https://localhost:7092/hubs/app`,{
+    .withUrl(`${environment.hubsUrl}/app`,{
       accessTokenFactory: () => token || 'nothing',
       transport: signalR.HttpTransportType.WebSockets,
       withCredentials: true  // this must match backend's AllowCredentials()
