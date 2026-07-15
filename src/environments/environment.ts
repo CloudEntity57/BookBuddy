@@ -5,8 +5,14 @@ export const environment = {
     hubsUrl: 'https://localhost:7092/hubs',
     rootUrl: 'http://localhost:4200',
     googleBooksAPIKey: 'AIzaSyCyEYmVR85HOs9ZuoU4C0t17ieyz5T7AoM',
-    // oauthClientId: '921071488707-tu04a0mvlm2k21r1qo2a6ejomc2vs58u.apps.googleusercontent.com',
-    oauthClientId: '921071488707-08qe055lk2vv7la2cu4q0sehksaprfot.apps.googleusercontent.com',
+    //Bookbuddy 2026 client:
+    oauthClientId: '921071488707-tu04a0mvlm2k21r1qo2a6ejomc2vs58u.apps.googleusercontent.com',
+
+    // UWP client:
+    // oauthClientId: '921071488707-kusrp5jrol9g7uekdgqbseqk6c5o8p07.apps.googleusercontent.com',
+
+    // Web Client 3 client:
+    // oauthClientId: '921071488707-08qe055lk2vv7la2cu4q0sehksaprfot.apps.googleusercontent.com',
     // google error: "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'books.googleapis.com' for consumer 'project_number:624717413613'."
         
     books:{

@@ -6,8 +6,14 @@ export const environment = {
     rootUrl: 'http://bookbuddy-bucket-464788833046-us-east-2-an.s3-website.us-east-2.amazonaws.com',
     // oauthClientId: '921071488707-kusrp5jrol9g7uekdgqbseqk6c5o8p07.apps.googleusercontent.com',
     googleBooksAPIKey: 'AIzaSyCyEYmVR85HOs9ZuoU4C0t17ieyz5T7AoM',
-    // oauthClientId: '921071488707-tu04a0mvlm2k21r1qo2a6ejomc2vs58u.apps.googleusercontent.com',
-    oauthClientId: '921071488707-08qe055lk2vv7la2cu4q0sehksaprfot.apps.googleusercontent.com',
+    //Bookbuddy 2026 client:
+    oauthClientId: '921071488707-tu04a0mvlm2k21r1qo2a6ejomc2vs58u.apps.googleusercontent.com',
+
+    // UWP client:
+    // oauthClientId: '921071488707-kusrp5jrol9g7uekdgqbseqk6c5o8p07.apps.googleusercontent.com',
+
+    // Web Client 3 client:
+    // oauthClientId: '921071488707-08qe055lk2vv7la2cu4q0sehksaprfot.apps.googleusercontent.com',    
     books:{
         googleBookSearchApi: "https://www.googleapis.com/books/v1/volumes?q=",
         googleBookFetchApi: "https://www.googleapis.com/books/v1/volumes/",
