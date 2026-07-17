@@ -11,6 +11,7 @@
     <div class="row">
         <div class="col-sm-5">
             <h3>BookBuddies</h3>
+            <div *ngIf="!buddies || !buddies.length">Go make some BookBuddies! You can DM each other about books you both want to read!</div>
             <div class="buddy" *ngFor="let buddy of buddies">
                 <span class="username-and-icon">
                     <span class="user-avatar" [style.background-image]="`url(${userImageService.getProfileImage(buddy.id)})`"></span>
@@ -23,6 +24,7 @@
             <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
                 <mat-tab label="Want To Read">
                     <div class="col-sm-12">
+                        <div *ngIf="!wantToReadList.length">Find some books to put in your BookBucketList!</div>
                         <div class="dashboard-book" *ngFor="let book of wantToReadList">
                             <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
                             <!-- {{book.volumeInfo.title}} -->
@@ -32,6 +34,7 @@
                 <mat-tab label="Reading"></mat-tab>
                 <mat-tab label="Read">
                 <div class="col-sm-12">
+                    <div *ngIf="!haveReadList || !haveReadList.length">Go search for books you've read and they'll appear here</div>
                     <div class="dashboard-book" *ngFor="let book of haveReadList">
                         <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
                         <!-- {{book.volumeInfo.title}} -->
