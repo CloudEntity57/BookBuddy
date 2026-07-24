@@ -1,9 +1,11 @@
 export const environment = {
     production: true,
     ssr: false,
-    apiUrl: 'http://3.149.234.60',
-    hubsUrl: 'http://3.149.234.60/hubs',
+    apiUrl: 'http://ec2-3-149-234-60.us-east-2.compute.amazonaws.com/api',
+    hubsUrl: 'http://ec2-3-149-234-60.us-east-2.compute.amazonaws.com/hubs',
     rootUrl: 'http://bookbuddy-bucket-464788833046-us-east-2-an.s3-website.us-east-2.amazonaws.com',
+    redirectUri: 'http://localhost:4200',
+
     // oauthClientId: '921071488707-kusrp5jrol9g7uekdgqbseqk6c5o8p07.apps.googleusercontent.com',
     googleBooksAPIKey: 'AIzaSyCyEYmVR85HOs9ZuoU4C0t17ieyz5T7AoM',
     //Bookbuddy 2026 client:

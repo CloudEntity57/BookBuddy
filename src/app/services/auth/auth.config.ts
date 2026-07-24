@@ -10,7 +10,7 @@ export const googleAuthConfig: AuthConfig = {
     // The first four are defined by OIDC.
     // Important: Request offline_access to get a refresh token
     // The api scope is a usecase specific one
-    // dummyClientSecret: 'secret',
+    dummyClientSecret: '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',
     scope: 'openid profile email https://www.googleapis.com/auth/userinfo.profile',
     responseType: 'code',
     showDebugInformation: true,
