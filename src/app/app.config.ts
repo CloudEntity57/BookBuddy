@@ -20,8 +20,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     // importProvidersFrom(HttpClientModule),
-    provideHttpClient(withInterceptorsFromDi()),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    provideHttpClient(),
+    // provideHttpClient(withInterceptorsFromDi()),
+    // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     provideOAuthClient()
     // provideOAuthClient({
     //   resourceServer: {

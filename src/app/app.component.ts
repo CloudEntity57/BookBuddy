@@ -70,31 +70,31 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       if(loggedIn === true){
         this.isLoggedIn = true;
         this.changeDetector.detectChanges();
-        this.authService.initUserInfo().then(() => {
-          this.authService.userInfo.pipe(takeUntil(this.$userReceived)).subscribe(userInfo => {
-            console.log('on init db profile: ', userInfo);
-            this.user = userInfo;
-            this.store.dispatch(userInfoUpdated({userInfo}));
-            // populate the user icon 
-            this.userIconURL = userInfo.avatarUrl;
-            console.log('user icon url: ', this.userIconURL)
-            if(userInfo && userInfo.id){
-              this.$userReceived.next();
-              // get all current notifications on page load
-              this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
-                if(res){
-                  console.log('got user notifications from database: ', res)
-                  this.notifications = res;
-                  this.checkForUnreadNotifications()
-                }
-              }));
-              // get buddies
-              this.store.dispatch(loadBuddies({userId: userInfo.id}));
-              console.log('dispatched get buddies action for global state');
-            }
-            this.changeDetector.detectChanges();
-          })
-        })
+        // this.authService.initUserInfo().then(() => {
+        //   this.authService.userInfo.pipe(takeUntil(this.$userReceived)).subscribe(userInfo => {
+        //     console.log('on init db profile: ', userInfo);
+        //     this.user = userInfo;
+        //     this.store.dispatch(userInfoUpdated({userInfo}));
+        //     // populate the user icon 
+        //     this.userIconURL = userInfo.avatarUrl;
+        //     console.log('user icon url: ', this.userIconURL)
+        //     if(userInfo && userInfo.id){
+        //       this.$userReceived.next();
+        //       // get all current notifications on page load
+        //       this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
+        //         if(res){
+        //           console.log('got user notifications from database: ', res)
+        //           this.notifications = res;
+        //           this.checkForUnreadNotifications()
+        //         }
+        //       }));
+        //       // get buddies
+        //       this.store.dispatch(loadBuddies({userId: userInfo.id}));
+        //       console.log('dispatched get buddies action for global state');
+        //     }
+        //     this.changeDetector.detectChanges();
+        //   })
+        // })
       }
       if(loggedIn  === false){
         console.log('no user logged in')
@@ -266,6 +266,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public onMouseLeave(menuTrigger: MatMenuTrigger) {
     console.log('mouse leave')
    menuTrigger.closeMenu();
+  }
+
+  public goToLogin(){
+    this.router.navigate(['/auth']);
   }
 
   public login(){

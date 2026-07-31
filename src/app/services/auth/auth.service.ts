@@ -16,52 +16,26 @@ import { loginSuccess, logoutSuccess, userInfoUpdated } from './store/auth.actio
 export class AuthService {
 
   constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private signalRService: SignalRService, private store: Store) {
-    this.configure();
+
   }
 
   public $isLoggedIn = new BehaviorSubject<boolean>(false);
   public userProfile: any = null;
   public userInfo = new BehaviorSubject<BookBuddyUser>({} as BookBuddyUser);
   public async login() {
-    this.oAuthService.initCodeFlow();
-  }
+    // this.oAuthService.initCodeFlow();
+    window.location.href = `${environment.apiUrl}/auth/google/login`;
 
+  }
+  public loginWithGoogle() {
+    window.location.href = `${environment.apiUrl}/auth/google/login`;
+  }
   public logout() {
     this.userInfo.next({} as BookBuddyUser);
     // this.$isLoggedIn.next(false);
     this.store.dispatch(userInfoUpdated({userInfo: null}));
     this.store.dispatch(logoutSuccess({isLoggedIn: false}));
     this.oAuthService.logOut();
-  }
-
-  public async configure(){
-    console.log('configuring oauth')
-    this.oAuthService.configure(googleAuthConfig);
-    this.oAuthService.loadDiscoveryDocumentAndTryLogin().then(_ => {
-      if(this.oAuthService.hasValidIdToken()){
-        console.log('has valid token')
-        // this.$isLoggedIn.next(true);
-        this.store.dispatch(loginSuccess({isLoggedIn: true}));
-      }
-      else{
-        console.log('nobody is logged in')
-        // this.$isLoggedIn.next(false);
-      }
-      this.oAuthService.setupAutomaticSilentRefresh();
-    })
-    this.oAuthService.events.subscribe(e => {
-      console.log(`auth service event: ${e.type}`)
-      if(e.type === 'token_expires'){
-        console.log('token has expired - initializing token refresh flow')
-        const refreshToken = this.oAuthService.getRefreshToken();
-        console.log('Refresh token:', refreshToken);
-        this.oAuthService.refreshToken();
-      }
-      if(e.type === 'logout'){
-        this.$isLoggedIn.next(false);
-        this.userInfo.next({} as BookBuddyUser);
-      }
-    })
   }
 
   public refreshUserInfo(userId: string): void{
