@@ -59,7 +59,7 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync ./dist/bookbuddy/browser s3://bookbuddy-production --delete
+          aws s3 sync ./dist/bookbuddy/browser s3://bookbuddy-bucket-464788833046-us-east-2-an --delete
 
       - name: Invalidate CloudFront
         run: |

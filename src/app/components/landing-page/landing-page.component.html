@@ -5,8 +5,8 @@
     <app-book-dropdown-option dropdown_type="landing-search"></app-book-dropdown-option>
     <ng-container *ngIf="nyTimesBestsellers && nyTimesBestsellers.length > 0">
         <h2 class="bestseller-header">This Week's New York Times Bestsellers:</h2>
-        <div>(google api reqs: {{googleReqs}})</div>
-        <div>(nyt api reqs: {{nyTimesReqs}})</div>
+        <!-- <div>(google api reqs: {{googleReqs}})</div>
+        <div>(nyt api reqs: {{nyTimesReqs}})</div> -->
         <div class="bestsellers-container">
             <div class="bestseller" *ngFor="let book of nyTimesBestsellers">
                 <div (click)="routeSelectionToBookPage(book)" class="nyt-book-cover" [style.background-image]="`url(${book.book_image})`" [style.height]="`${book.book_image_height/3}px`" [style.width]="`${book.book_image_width/3}px`"></div>
