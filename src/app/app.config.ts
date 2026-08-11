@@ -21,8 +21,8 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     // importProvidersFrom(HttpClientModule),
     provideHttpClient(),
-    // provideHttpClient(withInterceptorsFromDi()),
-    // { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     provideOAuthClient()
     // provideOAuthClient({
     //   resourceServer: {

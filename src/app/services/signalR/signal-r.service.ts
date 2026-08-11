@@ -13,7 +13,7 @@ export class SignalRService {
 
   public startConnection(): void {
 
-    const token = sessionStorage.getItem('id_token');
+    const token = sessionStorage.getItem('authToken');
     console.log('setting access token in signalR: ', token)
     
     this.hubConnection = new signalR.HubConnectionBuilder()
@@ -26,7 +26,7 @@ export class SignalRService {
     .build();
     this.hubConnection
     .start()
-    .then(() => console.log('SignalR connection started using access token ', sessionStorage.getItem('id_token')))
+    .then(() => console.log('SignalR connection started using access token ', sessionStorage.getItem('authToken')))
     .catch(err => console.log('SignalR connection error: ', err));  
 
   }

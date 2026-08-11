@@ -22,8 +22,8 @@ import { SignalRService } from './services/signalR/signal-r.service';
 import { MessageDTO } from './interfaces/message.interface';
 import { ImageService } from './services/images/image.service';
 import { Store } from '@ngrx/store';
-import { selectIsLoggedIn } from './services/auth/store/auth.selectors';
-import { buddiesUpdated, loadBuddies, userInfoUpdated } from './services/auth/store/auth.actions';
+import { selectIsLoggedIn, selectUserAvatarUrl, selectUserInfo } from './services/auth/store/auth.selectors';
+import { buddiesUpdated, loadBuddies, loginSuccess, userInfoUpdated } from './services/auth/store/auth.actions';
 
 
 @Component({
@@ -44,8 +44,10 @@ import { buddiesUpdated, loadBuddies, userInfoUpdated } from './services/auth/st
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public userImageService!: ImageService;
-  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService, private store: Store){
+  constructor(private authService: AuthService, private router: Router, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private buddyService: BuddyService, private messageService: MessageService, private signalRService: SignalRService, private notificationService: NotificationService, private store: Store){
     this.userImageService = imageService;
+    this.selectUserAvatar = this.store.select(selectUserAvatarUrl);
+
   }
   NotificationType = NotificationType;
   private lastScrollTop = 0;
@@ -62,14 +64,35 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public activeConversations: Array<Conversation> = [];
   public latestMessages: any = {};
   private $userReceived = new Subject<void>();
+  public selectUserAvatar: Observable<string | null>;
   private $loggedIn!: Observable<boolean>;
 
   ngOnInit(): void {
+    const authToken: string = sessionStorage.getItem('authToken') || '';
+    console.log('auth token: ', authToken);
     this.$loggedIn = this.store.select(selectIsLoggedIn);
+    if(authToken){
+      console.log('app.component.ts found an auth token: ', authToken);
+      this.setupUserInfo(authToken);
+    }
     this.subscriptions.push(this.$loggedIn.subscribe((loggedIn)=>{
-      if(loggedIn === true){
-        this.isLoggedIn = true;
-        this.changeDetector.detectChanges();
+      if(loggedIn){
+        console.log('app.component.ts has been informed user just logged in');
+        console.log('selecting user from store'); 
+        this.store.select(selectUserInfo).pipe(take(1)).subscribe(userInfo => {
+          this.user = userInfo || {} as BookBuddyUser;
+          this.populateUserInfo(this.user);
+        });
+      }
+    }));
+    
+    // this.subscriptions.push(this.$loggedIn.subscribe((loggedIn)=>{
+    //   if(loggedIn === true){
+    //     this.isLoggedIn = true;
+    //     this.changeDetector.detectChanges();
+    //   }
+        // Previously the angular-oauth2-oidc library handled the login flow and user info retrieval, but now we are using a custom backend flow. The following code is commented out because it is no longer needed, but it may be useful for reference in the future.
+
         // this.authService.initUserInfo().then(() => {
         //   this.authService.userInfo.pipe(takeUntil(this.$userReceived)).subscribe(userInfo => {
         //     console.log('on init db profile: ', userInfo);
@@ -95,13 +118,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
         //     this.changeDetector.detectChanges();
         //   })
         // })
-      }
-      if(loggedIn  === false){
-        console.log('no user logged in')
-        this.isLoggedIn = false;
-        this.changeDetector.detectChanges();
-      }
+      // }
+    //   if(loggedIn  === false){
+    //     console.log('no user logged in')
+    //     this.isLoggedIn = false;
+    //     this.changeDetector.detectChanges();
+    //   }
+    // }));
+    this.subscriptions.push(this.authService.userInfo.subscribe(user => {
+      this.user = user
     }));
+
     this.subscriptions.push(fromEvent(window, 'scroll').pipe(debounceTime(10)).subscribe(()=>{
       const currentScroll = document.documentElement.scrollTop;
       if(currentScroll > this.lastScrollTop){
@@ -128,9 +155,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
       this.changeDetector.detectChanges();
     }));
 
-    this.subscriptions.push(this.authService.userInfo.subscribe(user => {
-      this.user = user
-    }));
     this.subscriptions.push(this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         window.scrollTo({ top: 0 });
@@ -192,6 +216,28 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     })
   }
 
+  public setupUserInfo(authToken: string): void {
+      console.log('app.component.ts: auth token found in session storage: ', authToken)
+      this.authService.getCurrentUserInfo().subscribe({
+      // this.store.select(selectUserInfo).subscribe({
+        next: userInfo => {
+          if(!userInfo || !userInfo.id){
+            return;
+          }
+          this.populateUserInfo(userInfo);
+      },
+        error: err => {
+          console.error('Error retrieving user info: ', err);
+          // Handle error, maybe redirect to an error page or show a message
+          if(err.status === 401){
+            console.log('Unauthorized access. Logging out user and redirecting to login page.')
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }
+        }
+      });
+  }
+
   public subscribeToGlobalNotificationsUpdateTrigger(): void{
     this.subscriptions.push(this.notificationsService.$updateNotifications.subscribe(() => {
       console.log('update notifications in application.js triggered')
@@ -246,9 +292,39 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   public ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
+
+  public populateUserInfo(userInfo: BookBuddyUser): void {
+          console.log('Appcomponent.ts user info retrieved: ', userInfo);
+          sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+          sessionStorage.setItem('user_id', userInfo.id);
+          this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
+          this.store.dispatch(loginSuccess({isLoggedIn: true}));
+          this.isLoggedIn = true;
+          // Redirect to the dashboard or any other page
+            // populate the user icon 
+            this.userIconURL = userInfo.avatarUrl;
+            console.log('user icon url: ', this.userIconURL)
+            if(userInfo && userInfo.id){
+              this.$userReceived.next();
+              this.signalRService.startConnection();
+              this.notificationService.listenForSignalRConnection();    
+
+              // get all current notifications on page load
+              this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
+                if(res){
+                  console.log('got user notifications from database: ', res)
+                  this.notifications = res;
+                  this.checkForUnreadNotifications()
+                }
+              }));
+              // get buddies
+              this.store.dispatch(loadBuddies({userId: userInfo.id}));
+              console.log('dispatched get buddies action for global state');
+            }
+  }
   
   public buddyRequesterName(userId: string): string{
-    const user = this.user?.receivedBuddyRequests.find(user => user.id == userId);
+    const user = this.user?.receivedBuddyRequests?.find(user => user.id == userId);
     return user?.userName || '';
   }
 

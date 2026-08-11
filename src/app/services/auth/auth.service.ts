@@ -35,7 +35,13 @@ export class AuthService {
     // this.$isLoggedIn.next(false);
     this.store.dispatch(userInfoUpdated({userInfo: null}));
     this.store.dispatch(logoutSuccess({isLoggedIn: false}));
-    this.oAuthService.logOut();
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
+    sessionStorage.removeItem('user_id');
+    window.location.href = '/';}
+
+  public getCurrentUserInfo(): Observable<BookBuddyUser> {
+    return this.http.get<BookBuddyUser>(`${environment.apiUrl}/Users/current`);
   }
 
   public refreshUserInfo(userId: string): void{
@@ -47,6 +53,7 @@ export class AuthService {
           return;
         }
         this.userInfo.next(user);
+        this.store.dispatch(userInfoUpdated({userInfo: user}));
       },
       error: err => {
         console.log('error while refreshing user info: ', err);

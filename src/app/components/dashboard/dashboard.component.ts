@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BuddyService } from '../../services/buddies/buddy.service';
-import { filter, Observable, Subject, Subscription, takeUntil } from 'rxjs';
+import { filter, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookBuddyUser } from '../../interfaces/user.interface';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { AuthService } from '../../services/auth/auth.service';
@@ -28,6 +28,7 @@ import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/
 })
 export class DashboardComponent implements OnInit, OnDestroy{
   public $userInitiated = new Subject<void>();
+  public $bookLoaded = new Subject<void>();
   public userImageService!: ImageService;
 
   constructor(private router: Router, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private bookService: BookService, private messageService: MessageService, private store: Store ){ 
@@ -40,8 +41,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public buddies!: Array<BookBuddyUser> | null;
   public userInfo: BookBuddyUser = {} as BookBuddyUser;
   public userLoggedIn: boolean = false;
-  public wantToReadList: Array<any> = [];
-  public haveReadList: Array<any> = [];
+  public wantToReadList: Array<GoogleBookInfo> = [];
+  public haveReadList: Array<GoogleBookInfo> = [];
   ngOnInit(): void {
     this.$loggedIn = this.store.select(selectIsLoggedIn);
     this.$userInfo = this.store.select(selectUserInfo);
@@ -49,10 +50,9 @@ export class DashboardComponent implements OnInit, OnDestroy{
      console.log('INIT NEW Landing PAGE')
         this.subscriptions.push(
           this.$userInfo.subscribe(userInfo => {
-            console.log('getting user info from store: ', userInfo)
-            if(userInfo && userInfo.id && !this.userInfo.id){
+            console.log('dashboard getting user info from store: ', userInfo)
+            if(userInfo && userInfo.id){
               this.progressBarService.startProgressBar();
-              console.log('dashboard init db profile: ', userInfo);
               this.userInfo = userInfo;
               this.userLoggedIn = true;
               this.updateUserDashboardItems(userInfo)
@@ -87,18 +87,27 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  // This contains an unsolved bug - getting duplicate loads of the same book in want to read list due to some unknown reason in the subscription.
   public updateUserDashboardItems(userInfo: BookBuddyUser){
+    console.log('updating dashboard items for user: ', userInfo);
     this.wantToReadList = [];
     this.haveReadList = [];
     if(userInfo.wantToRead && userInfo.wantToRead.length > 0){
       userInfo.wantToRead.forEach(book => {
+        console.log('getting book by id: ', book.apiId);
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
-            this.wantToReadList.push(bookResult);
+            console.log('got book result: ', bookResult);
+            // temporary fix for duplicate books in want to read list - check if book already exists in list before adding it
+            if(!this.wantToReadList.some(b=> b.volumeInfo.title === bookResult.volumeInfo.title)){
+              console.log('(book not yet populated in want to read list)');
+              this.wantToReadList.push(bookResult);
+            }
           },
           error: error => console.log('error getting book by id: ', error.message)
         }));
       });
+      this.changeDetector.detectChanges();
     }
     if(userInfo.haveRead && userInfo.haveRead.length > 0){
       userInfo.haveRead.forEach(book => {

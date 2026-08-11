@@ -27,7 +27,7 @@
               <!-- User Icon -->
              <ng-container *ngIf="isLoggedIn && userIconURL">
               <div class="user-icon"
-                [style.background-image]="`url(${userImageService.getProfileImage(user.id)})`"
+                [style.background-image]="`url(${selectUserAvatar | async})`"
                 [matMenuTriggerFor]="userMenu" 
                 #menuTrigger="matMenuTrigger">
               </div>
