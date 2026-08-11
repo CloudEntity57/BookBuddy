@@ -3,7 +3,7 @@ name: Deploy BookBuddy Frontend
 on:
   push:
     branches:
-      - develop
+      - master
 
 permissions:
   id-token: write
