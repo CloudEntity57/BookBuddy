@@ -86,10 +86,13 @@ $opened-height: 450px;
 .message-area{
     max-height: $opened-height;
     overflow-y: auto;
-    padding: 10px 20px;
+    padding: 10px;
     color: styles.$tertiary-color;
     scrollbar-color: styles.$secondary-color styles.$main-color;
     // background-color: #434343;
+}
+.message-timestamp-buffer{
+    height: 15px;
 }
 
 .text-area-container{

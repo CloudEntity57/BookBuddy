@@ -1,10 +1,10 @@
 export const environment = {
     production: false,
     ssr: false,
-    apiUrl: 'https://localhost:7092/api',
-    hubsUrl: 'https://localhost:7092/hubs',
+    apiUrl: 'http://localhost:5268/api',
+    hubsUrl: 'http://localhost:5268/hubs',
     rootUrl: 'http://localhost:4200',
-    redirectUri: 'http://localhost:4200',
+    redirectUri: 'http://localhost:5268/api/auth/login-callback',
     googleBooksAPIKey: 'AIzaSyCyEYmVR85HOs9ZuoU4C0t17ieyz5T7AoM',
     //Bookbuddy 2026 client:
     oauthClientId: '921071488707-tu04a0mvlm2k21r1qo2a6ejomc2vs58u.apps.googleusercontent.com',

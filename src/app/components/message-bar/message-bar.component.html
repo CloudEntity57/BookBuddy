@@ -16,7 +16,9 @@
                             <span class="message-avatar" [style.background-image]="`url(${userImageService.getProfileImage(message.senderId)})`"></span>
                             {{buddyName(message)}}
                         </div>
-                        {{message.content}} <span class="message-timestamp">{{messageTime(message)}}</span>  
+                        {{message.content}}
+                        <div class="message-timestamp-buffer"></div>
+                        <span class="message-timestamp">{{messageTime(message)}}</span>
                     </div>
                 </div>
             </div> 

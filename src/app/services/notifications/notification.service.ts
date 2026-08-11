@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CreateNotificationDTO, Notification } from '../../interfaces/notification.interface';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import * as signalR from '@microsoft/signalR';
 import { AuthService } from '../auth/auth.service';
 import { SignalRService } from '../signalR/signal-r.service';
 

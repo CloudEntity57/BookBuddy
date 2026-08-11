@@ -14,6 +14,11 @@ export const selectUserInfo = createSelector(
     (state) => state.userInfo
 );
 
+export const selectUserAvatarUrl = createSelector(
+    selectLoginState,
+    (state) => state.userInfo?.avatarUrl || null
+);
+
 export const selectBuddies = createSelector(
     selectLoginState,
     (state) => state.buddies

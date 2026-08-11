@@ -94,10 +94,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.$buddies = this.store.select(selectBuddies);
     this.$userInfo = this.store.select(selectUserInfo);
     // this.subscriptions.push(
-       const userInfo = this.store.select(selectUserInfo);
+      //  const userInfo = this.store.select(selectUserInfo);
       // this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
       this.subscriptions.push(this.$userInfo.subscribe(userInfo => {
-        if(userInfo && userInfo.id && !this.userInfo.id){
+        if(userInfo && userInfo.id){
         this.progressBarService.startProgressBar();
           console.log('bookpage init db profile: ', userInfo);
           this.userInfo = userInfo;
@@ -117,19 +117,19 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.changeDetector?.detectChanges();
         }
       }));
-    this.subscriptions.push(this.authService.userInfo.subscribe(userInfo => {
-      if(this.userInfo && this.userInfo.id){
-        this.userInfo = userInfo;
-        this.changeDetector.detectChanges();
-      }
-    }));
-    this.subscriptions.push(this.$isLoggedIn.subscribe(login => {
-      if(!login){
-        console.log('resetting page defaults');
-        this.resetPageDefaults();
-        this.changeDetector?.detectChanges();
-      }
-    }));
+    // this.subscriptions.push(this.authService.userInfo.subscribe(userInfo => {
+    //   if(this.userInfo && this.userInfo.id){
+    //     this.userInfo = userInfo;
+    //     this.changeDetector.detectChanges();
+    //   }
+    // }));
+    // this.subscriptions.push(this.$isLoggedIn.subscribe(login => {
+    //   if(!login){
+    //     console.log('resetting page defaults');
+    //     this.resetPageDefaults();
+    //     this.changeDetector?.detectChanges();
+    //   }
+    // }));
 
 
     if(!this.userLoggedIn){
@@ -225,7 +225,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
     console.log('BOOK ID = ',this.apiBookId)
     this.subscriptions.push(this.bookService.getAPIBookById(this.apiBookId, environment.books.bookByIdApi).subscribe(book => {
       if(this.api_type === "google" && book.source === "google") this.book = book;
-      else if(this.api_type === "openLibrary" && book.source === "openLibrary") this.work = book;
       if(this.api_type === "openLibrary"){
         this.getAuthors(this.work);
       }
@@ -330,6 +329,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         if(res){
           this.userWantsToRead = false;
           this.usersWhoWantToRead = this.usersWhoWantToRead.filter(user => user.id !== this.userInfo.id);
+          this.authService.refreshUserInfo(this.userInfo.id);
           this.changeDetector.detectChanges();
         }
         this.progressBarService.stopProgressBar();
