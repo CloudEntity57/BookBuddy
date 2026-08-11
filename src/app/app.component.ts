@@ -387,9 +387,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     console.log('successfully invoked hubConnection JoinConversation action for conversation ', conversation.id)
     this.latestMessages[conversation.id] = null;
     this.signalRService.hubConnection.on("ConversationUpdated", newMessage => {
-      newMessage = newMessage as MessageDTO;
-      console.log(`got a new message - ${newMessage.content}`)
-      this.messageService.updateMessage(newMessage.conversationId, newMessage);
+      const message = newMessage as MessageDTO;
+      console.log(`got a new message - ${message.content}`)
+      this.messageService.updateMessage(message.conversationId, message);
       // this.activeConversations.find(conv => conv.id === newMessage.conversationId)?.messages.push(newMessage);
       // this.latestConversationUpdated = conversation.id;
       // const targetConversationIndex = newActiveConversations.indexOf(targetConversation);

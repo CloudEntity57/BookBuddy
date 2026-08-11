@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as signalR from '@microsoft/signalR';
+import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
 
 
