@@ -66,6 +66,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
     public databaseBook?: DatabaseBook;
     public book!: GoogleBookInfo;
+    public showFullDescription: boolean = false;
     public work!: OpenLibraryWorkInfo;
     public apiBookId: string = '';
     public bookId = toSignal(this.route.queryParams.pipe(
@@ -76,7 +77,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
     // public author?: Array<string> = this.api_type == "openLibrary" ? this.work?.subject_people : this.book?.volumeInfo?.authors;
     public get title() { return this.api_type == "openLibrary" ? this.work?.title :  this.book?.volumeInfo?.title };
     public get date(){ return this.api_type == "openLibrary" ? this.work?.created.value : this.book?.volumeInfo?.publishedDate};
-    public get description() { return this.api_type == "openLibrary" ? ( typeof this.work?.description == 'object' ? this.work?.description?.value : this.work?.description) : this.book?.volumeInfo?.description};
+    public get truncated_description() { return this.book?.volumeInfo?.description?.slice(0, 900)};
+    public get description() { return this.book?.volumeInfo?.description };
     public authorEnglish = signal('');
     public subscriptions: Array<Subscription> = [];
     public get smallImageLink(){ return this.api_type == "openLibrary" ? this.work.title :  this.book.volumeInfo?.title };
@@ -138,6 +140,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
     console.log('BOOK: ',this.book);
     console.log('WORK', this.work)
 
+  }
+
+  public toggleFullDescription(): void {
+    this.showFullDescription = !this.showFullDescription;
   }
 
 

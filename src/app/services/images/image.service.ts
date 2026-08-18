@@ -18,5 +18,8 @@ export class ImageService {
   }
 
   getProfileImage(userId: string): string {
+    if(!userId){
+      return `assets/images/default-user-icon.jpg`;
+    }
     return `${environment.apiUrl}/users/profile-image/${userId}`;
   }}

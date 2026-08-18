@@ -1,72 +1,90 @@
-<div class="container custom-container">
-    <div class="book-columns row">
-        <div class="book-info col-sm-4">
-            <div class="book-title">{{title}} </div>
-            <h3>{{authorEnglish()}} {{'('+ (date | date:'yyyy')+')'}}</h3>
-            <!-- <img class="book-image" src={{smallThumbnail}}> -->
-            <img class="book-image" src={{thumbnail}}>
-        </div>
-        <div class="action-to-read col-sm-4">
-            <button *ngIf="!userWantsToRead && !userHasRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
-            <ng-container *ngIf="userWantsToRead">
-                You Want To Read This &nbsp; 
-                <button (click)="wantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
-            </ng-container>
-            <button *ngIf="!userHasRead" (click)="haveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
-            <ng-container *ngIf="userHasRead">
-                You Read This &nbsp; 
-                <button (click)="haveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
-            </ng-container>
-            <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
-
-            <ul class="basic-instructions">
-                <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
-                <li>Once book buddies, you can discuss books together via messaging, or get serious and schedule a seminar or video chat.</li>
-                <li>Invite anyone you are book buddies with to read anything, and message freely.</li>
-            </ul>
-
-        </div>
-        <div class="want-to-read col-sm-4">
-            <div class="buddies">
-                <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
-                <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
-                    <span class="username-and-icon">
-                        <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
-                        <span class="user-name">{{user.userName}}</span>
-                    </span>
-
-                    <!-- send a buddy request -->
-                    <span *ngIf="(buddies && user.id != userInfo.id) && !isExistingBuddy(user.id, buddies) && !buddyRequestSent(userInfo.sentBuddyRequests, user) && !buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
-
-                    <!-- cancel the buddy request -->
-                    <span *ngIf="(user.id != userInfo.id) && buddyRequestSent(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Cancel</button></span>
-
-                    <!-- accept or ignore (reject) a buddy request -->
-                    <span class="invited-buddy" *ngIf="user.id && buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" ><button [matMenuTriggerFor]="buddyMenu" class="action-button buddy-button" mat-raised-button>Respond</button></span>   
-                    <mat-menu class="buddy-accept-menu" #buddyMenu="matMenu">
-                        <button class="menu-button" (click)="acceptBuddyRequest(user)" mat-menu-item>Accept Request</button>
-                        <button class="menu-button" (click)="ignoreBuddyRequest(user)" mat-menu-item>Ignore</button>
-                        <button class="menu-button" (click)="initiateMessaging(user)" mat-menu-item>Message</button>
-                    </mat-menu>
-                    
-                    <!-- message an existing buddy -->
-                    <span *ngIf="(buddies && user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="initiateMessaging(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
-
-                 </div>
-                <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
+<div class="buffer"></div>
+<div class="container">
+    <div class="row">
+        <div class="book-columns row">
+            <div class="book-info col-sm-4">
+                <div class="book-title">{{title}} </div>
+                <h3>{{authorEnglish()}} {{'('+ (date | date:'yyyy')+')'}}</h3>
+                <!-- <img class="book-image" src={{smallThumbnail}}> -->
+                <img class="book-image" src={{thumbnail}}>
             </div>
-            <div class="ai-buddies">
-                <mat-divider></mat-divider>
-                <div class="want-to-read-header">Or: Read <b>{{title}}</b> with <b>AI BookBuddies:</b></div>
-
-                <div class="user-want-to-read" *ngFor="let user of wantToReadAIAgents">
-                    <span class="username-and-icon">
-                        <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
-                        <span class="user-name">{{user?.userName}}</span>
+            <ng-container *ngIf="description && description.length > 900">
+                <div *ngIf="!showFullDescription" class="truncated-description-container col-sm-8">
+                    <span class="book-description" [innerHTML]="truncated_description">
                     </span>
+                    <span class="see-more"><b (click)="toggleFullDescription()">Show More..</b></span>
+                </div>
+                <div *ngIf="showFullDescription" class="truncated-description-container col-sm-8">
+                    <span class="book-description" [innerHTML]="description">
+                    </span>
+                    <span class="see-more"><b (click)="toggleFullDescription()">Show less</b></span>
+                </div>
+
+            </ng-container>
+            <ng-container *ngIf="description && description.length <= 900">
+                <div class="book-description col-sm-8" [innerHTML]="description || 'no description available'"></div>
+            </ng-container>
+        </div>
+            <div class="action-to-read col-sm-6">
+                <button *ngIf="!userWantsToRead && !userHasRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
+                <ng-container *ngIf="userWantsToRead">
+                    You Want To Read This &nbsp; 
+                    <button (click)="wantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                </ng-container>
+                <button *ngIf="!userHasRead" (click)="haveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
+                <ng-container *ngIf="userHasRead">
+                    You Read This &nbsp; 
+                    <button (click)="haveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                </ng-container>
+                <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+
+                <ul class="basic-instructions">
+                    <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
+                    <li>Once book buddies, you can discuss books together via messaging, or get serious and schedule a seminar or video chat.</li>
+                    <li>Invite anyone you are book buddies with to read anything, and message freely.</li>
+                </ul>
+
+            </div>
+            <div class="want-to-read col-sm-6">
+                <div class="buddies">
+                    <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
+                    <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
+                        <span class="username-and-icon">
+                            <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
+                            <span class="user-name">{{user.userName}}</span>
+                        </span>
+
+                        <!-- send a buddy request -->
+                        <span *ngIf="(buddies && user.id != userInfo.id) && !isExistingBuddy(user.id, buddies) && !buddyRequestSent(userInfo.sentBuddyRequests, user) && !buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" class="invite-buddy"><button (click)="sendBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Buddy</button></span>
+
+                        <!-- cancel the buddy request -->
+                        <span *ngIf="(user.id != userInfo.id) && buddyRequestSent(userInfo.sentBuddyRequests, user)" class="invited-buddy"><button (click)="cancelBuddyRequest(user)" class="action-button buddy-button" mat-raised-button>Cancel</button></span>
+
+                        <!-- accept or ignore (reject) a buddy request -->
+                        <span class="invited-buddy" *ngIf="user.id && buddyRequestReceived(userInfo.receivedBuddyRequests ? userInfo.receivedBuddyRequests: [], user)" ><button [matMenuTriggerFor]="buddyMenu" class="action-button buddy-button" mat-raised-button>Respond</button></span>   
+                        <mat-menu class="buddy-accept-menu" #buddyMenu="matMenu">
+                            <button class="menu-button" (click)="acceptBuddyRequest(user)" mat-menu-item>Accept Request</button>
+                            <button class="menu-button" (click)="ignoreBuddyRequest(user)" mat-menu-item>Ignore</button>
+                            <button class="menu-button" (click)="initiateMessaging(user)" mat-menu-item>Message</button>
+                        </mat-menu>
+                        
+                        <!-- message an existing buddy -->
+                        <span *ngIf="(buddies && user.id != userInfo.id) && isExistingBuddy(user.id, buddies)" class="invited-buddy"><button (click)="initiateMessaging(user)" class="action-button buddy-button" mat-raised-button>Message</button></span>
+
+                    </div>
+                    <div *ngIf="usersWhoWantToRead.length === 0" class="no-users-found">Looks like nobody wants to read this right now. Invite someone!</div>
+                </div>
+                <div class="ai-buddies">
+                    <mat-divider></mat-divider>
+                    <div class="want-to-read-header">Or: Read <b>{{title}}</b> with <b>AI BookBuddies:</b></div>
+
+                    <div class="user-want-to-read" *ngFor="let user of wantToReadAIAgents">
+                        <span class="username-and-icon">
+                            <span class="user-avatar" [style.background-image]="`url(${user?.avatarUrl})`"></span>
+                            <span class="user-name">{{user?.userName}}</span>
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
     </div>
-    <div class="book-description" [innerHTML]="description || 'no description available'"></div>
 </div>
