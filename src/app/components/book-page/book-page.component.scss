@@ -24,9 +24,12 @@
 //         width: 80vw;
 //     }
 // }
+.buffer{
+    height: 20px;
+}
 .container{
     // margin: 0px !important;
-    padding: 10px 0px !important;
+    // padding: 10px 0px !important;
 }
 .book-info{
     // width: 25vw;
@@ -47,12 +50,9 @@
     margin-bottom: 10px;
 }
 
-// .book-columns{
-//     display: flex;
-//     justify-content: space-between;
-//     flex-wrap: wrap;
-//     margin-top: 20px;
-// }
+.book-columns{
+    margin-bottom: 20px;
+}
 
 .book-title{
     font-size: 1.5em;
@@ -86,7 +86,20 @@ mat-divider{
 .book-description{
     margin-top: 10px;
     padding-bottom: 50px;
+    // max-height: 400px;
+    // overflow-y: scroll;
 }
+.see-more{
+    cursor: pointer;
+    padding-left: 5px;
+}
+// .truncated-description-container{
+//     position: relative;
+// }
+// .see-more{
+//     position: absolute;
+//     bottom: 45px;
+// }
 
 // $user-height: 50px;
 // $transition-speed: .75s;

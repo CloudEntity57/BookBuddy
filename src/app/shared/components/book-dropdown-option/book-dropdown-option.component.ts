@@ -29,6 +29,7 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
   @ViewChild('bookBuddySearchInput', { static: true }) searchInputElement!: ElementRef;
   public searchOption: string | null = null;
   public displayChoicesModal: boolean = false;
+  public displaySearchResults: boolean = false;
   public searchChoice: string = 'both';
   public formSubmitted: boolean = false;
 
@@ -47,6 +48,14 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  public handleSearchBarClick(){
+    console.log('search bar clicked')
+    if(this.bookList.length){
+      this.displaySearchResults = !this.displaySearchResults;
+    }
+    this.changeDetector.detectChanges();
   }
 
   public setChoicesModal(cancel: boolean){
@@ -125,7 +134,7 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
   public listenForSearchChanges(): void{
     const bookSearchControl = this.book_form.get('book_search') as FormControl;
     this.subscriptions.push(bookSearchControl.valueChanges.pipe(
-      takeWhile(()=> this.searchChoice == null),
+      // takeWhile(()=> this.searchChoice == null),
       debounceTime(150),
       tap(val => {
         if(!val) this.bookList = [];
