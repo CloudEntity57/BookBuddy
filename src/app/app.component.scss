@@ -46,6 +46,10 @@ main{
     font-style: italic;
     color: styles.$tertiary-color;
     font-size: calc(.65rem + 0.6vw);
+    @media(max-width: 1000px){
+        display: none;
+    }
+
 }
 // .navbar-buffer{
 //     height: $navbar-height;
