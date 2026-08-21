@@ -3,11 +3,12 @@
 //@import '../../../node_modules/bootstrap';
 
 .main-header{
-    height: 65vh;
+    // height: 65vh;
+    height: 55vw;
     // background-color: $main-color;
-    // background-image: url('../../../assets/images/book-seminar.png');
-    background-image: url('../../../assets/images/colca_peru.jpg');
-    background-size: cover;
+    background-image: url('../../../assets/images/book-seminar.png');
+    // background-image: url('../../../assets/images/colca_peru.jpg');
+    background-size: contain;
 }
 
 .landing-page-contents{

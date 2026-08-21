@@ -50,7 +50,7 @@
                     <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
                     <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
                         <span class="username-and-icon">
-                            <span class="user-avatar" [style.background-image]="`url(${user.avatarUrl})`"></span>
+                            <span class="user-avatar" [style.background-image]="`url(${userImageService.getProfileImage(user.id)})`"></span>
                             <span class="user-name">{{user.userName}}</span>
                         </span>
 

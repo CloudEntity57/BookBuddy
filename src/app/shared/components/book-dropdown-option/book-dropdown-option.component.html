@@ -3,13 +3,13 @@
 <div class="landing-search-container">
     <form [formGroup]="book_form">
         <!-- <mat-form-field> -->
-            <input #bookBuddySearchInput matInput type="text" [matAutocomplete]="auto" formControlName="book_search" (click)="handleSearchBarClick()" [class]= "dropdown_type" class="search form-control" placeholder={{dropdown_text}}>
+            <input #bookBuddySearchInput matInput type="text" [matAutocomplete]="auto" formControlName="book_search" [class]= "dropdown_type" class="search form-control" placeholder={{dropdown_text}}>
             <!-- Suffix caret icon -->
                 <mat-icon *ngIf="!displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(false)" tabindex="-1">expand_more</mat-icon>
                 <mat-icon *ngIf="displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(true)" tabindex="-1">expand_less</mat-icon>
                 <mat-icon *ngIf="searchChoice && book_form.get('book_search')?.value?.length" class="search-icon" matSuffix (click)="search()" tabindex="-1">search</mat-icon>
             <mat-autocomplete  #auto="matAutocomplete">
-                <ng-container *ngIf="displaySearchResults && bookList.length">
+                <ng-container *ngIf="bookList.length">
                     <mat-option *ngFor="let book_option of bookList" (onSelectionChange)="handleBookSelect(book_option)">
                         <div class="options-container">
                             <ng-container *ngIf="book_option.source === 'google' && formSubmitted && !book_form.pristine">
