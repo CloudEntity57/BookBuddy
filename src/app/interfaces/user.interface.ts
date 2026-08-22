@@ -24,6 +24,8 @@ export interface BookBuddyUser{
     lastLoginAt?: string,
     wantToRead?: Array<DatabaseBook>,
     haveRead?: Array<DatabaseBook>,
+    currentlyReading?: Array<DatabaseBook>,
+    didNotFinish?: Array<DatabaseBook>,
     sentBuddyRequests: Array<BookBuddyUser>,
     receivedBuddyRequests: Array<BookBuddyUser>,
     buddies: Array<BookBuddyUser>

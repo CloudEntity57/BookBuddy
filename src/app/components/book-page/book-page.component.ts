@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook } from '../../interfaces/book.interface';
+import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook, CheckForAndCreateBookResponse } from '../../interfaces/book.interface';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
@@ -61,6 +61,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public userLoggedIn = false;
     public userWantsToRead: boolean = false;
     public userHasRead: boolean = false;
+    public userIsReading: boolean = false;
+    public userDidNotFinish: boolean = false;
     public userInfo: BookBuddyUser = {} as BookBuddyUser;
     private $userInitiated = new Subject<void>();
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
@@ -95,44 +97,26 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.$isLoggedIn = this.store.select(selectIsLoggedIn);
     this.$buddies = this.store.select(selectBuddies);
     this.$userInfo = this.store.select(selectUserInfo);
-    // this.subscriptions.push(
-      //  const userInfo = this.store.select(selectUserInfo);
-      // this.authService.userInfo.pipe(takeUntil(this.$userInitiated)).subscribe(userInfo => {
-      this.subscriptions.push(this.$userInfo.subscribe(userInfo => {
-        if(userInfo && userInfo.id){
-        this.progressBarService.startProgressBar();
-          console.log('bookpage init db profile: ', userInfo);
-          this.userInfo = userInfo;
-          this.userLoggedIn = true;
-          // retrieve buddy list
-          this.subscriptions.push(this.$buddies.subscribe(buddies => {
-            this.buddies = buddies;
-            console.log('book page loaded buddies: ', this.buddies)
-            this.progressBarService.stopProgressBar();
-            this.changeDetector.detectChanges();
-          }));
-          this.changeDetector?.detectChanges();
-          // this.processBookData();
-        }else{
-          console.log('resetting page defaults on book page')
-          this.resetPageDefaults();
-          this.changeDetector?.detectChanges();
-        }
-      }));
-    // this.subscriptions.push(this.authService.userInfo.subscribe(userInfo => {
-    //   if(this.userInfo && this.userInfo.id){
-    //     this.userInfo = userInfo;
-    //     this.changeDetector.detectChanges();
-    //   }
-    // }));
-    // this.subscriptions.push(this.$isLoggedIn.subscribe(login => {
-    //   if(!login){
-    //     console.log('resetting page defaults');
-    //     this.resetPageDefaults();
-    //     this.changeDetector?.detectChanges();
-    //   }
-    // }));
-
+    this.subscriptions.push(this.$userInfo.subscribe(userInfo => {
+      if(userInfo && userInfo.id){
+      this.progressBarService.startProgressBar();
+        console.log('bookpage init db profile: ', userInfo);
+        this.userInfo = userInfo;
+        this.userLoggedIn = true;
+        // retrieve buddy list
+        this.subscriptions.push(this.$buddies.subscribe(buddies => {
+          this.buddies = buddies;
+          console.log('book page loaded buddies: ', this.buddies)
+          this.progressBarService.stopProgressBar();
+          this.changeDetector.detectChanges();
+        }));
+        this.changeDetector?.detectChanges();
+      }else{
+        console.log('resetting page defaults on book page')
+        this.resetPageDefaults();
+        this.changeDetector?.detectChanges();
+      }
+    }));
 
     if(!this.userLoggedIn){
       this.processBookData();
@@ -181,49 +165,14 @@ export class BookPageComponent implements OnInit, OnDestroy{
       }));
   }
 
-  // public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
-  //   const newConversation: CreateConversationDto = {
-  //     name: `Message between ${user1.userName} and ${user2.userName}`,
-  //     isGroup: false,
-  //   };
-
-  //   this.subscriptions.push(this.messageService.createConversation(newConversation).pipe(
-  //     switchMap((conv) => {
-  //       // if(conv && conv.id){
-  //         const addFirst = this.addUserToConversation(user1, conv.id);
-  //         const addSecond = this.addUserToConversation(user2, conv.id);
-  //         return forkJoin([addFirst, addSecond, of(conv)]);
-  //       // }
-  //     })
-  //   ).subscribe({
-  //     next: ([firstResp, secondResp, conv]) => {
-  //       console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
-  //       // Navigate to chat
-  //       this.messageService.conversationToStage.next(conv);
-  //       this.progressBarService.stopProgressBar();
-  //     },
-  //     error: (error) => {
-  //       console.log(error);
-  //       this.progressBarService.stopProgressBar();
-  //     }
-  //   }));
-  // }
-
-  // public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
-  //   const newMember: ConversationMember = {
-  //     userName: user.userName,
-  //     userId: user.id,
-  //     conversationId
-  //   }
-  //   return this.messageService.addConversationMember(newMember);
-  // }
-
   public processBookData(){
     // clear existing want-to-read column for new data:
     this.usersWhoWantToRead = [];
     this.usersWhoReadBook = [];
     this.userWantsToRead = false;
     this.userHasRead = false;
+    this.userIsReading = false;
+    this.userDidNotFinish = false;
     this.changeDetector?.detectChanges();
     // console.log('NEW PARAMS - ', params)
     // const bookId = params['id'];
@@ -257,7 +206,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           // if user is logged in, check if book is on their read list:
           if(this.userLoggedIn){
             console.log('user logged in')
-            this.checkIfBookOnUserWantsToReadList(res);
+            this.checkIfBookHasUserPreferences(res);
           }else{
             console.log('user not logged in')
           }
@@ -285,7 +234,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     return of("Google Books Author Name")
   };
 
-  public checkIfBookOnUserWantsToReadList(res: DatabaseBook){
+  public checkIfBookHasUserPreferences(res: DatabaseBook){
     console.log('checking if book is on read list')
     let book;
     if(res) book = res as DatabaseBook;
@@ -293,7 +242,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
     console.log('user info: ', this.userInfo)
     const user: BookBuddyUser = this.userInfo;
     if(book && user.wantToRead?.some(bk => bk.id === book.id)){
-    // if(book && book.usersWantToRead?.some(user => user.id === this.userInfo.id)){
       // mark book as on their want to read list
       console.log('book is on user want to read list')
       this.userWantsToRead = true;
@@ -302,12 +250,28 @@ export class BookPageComponent implements OnInit, OnDestroy{
       console.log('book is not on user read list')
     }
     if(book && user.haveRead?.some(bk => bk.id === book.id)){
-      // mark book as on their want to read list
+      // mark book as on their has read list
       console.log('book is on user read list')
       this.userHasRead = true;
       this.changeDetector.detectChanges();
     }else{
-      console.log('book is not on user read list')
+      console.log('book is not on user has read list')
+    }
+    if(book && user.currentlyReading?.some(bk => bk.id === book.id)){
+      // mark book as on their currently reading list
+      console.log('book is on user currently reading list')
+      this.userIsReading = true;
+      this.changeDetector.detectChanges();
+    }else{
+      console.log('book is not on user currently reading list')
+    }
+    if(book && user.didNotFinish?.some(bk => bk.id === book.id)){
+      // mark book as on their did not finish list
+      console.log('book is on user did not finish list')
+      this.userDidNotFinish = true;
+      this.changeDetector.detectChanges();
+    }else{
+      console.log('book is not on user did not finish list')
     }
   }
 
@@ -323,7 +287,108 @@ export class BookPageComponent implements OnInit, OnDestroy{
     };
   }
 
-  public wantToRead(cancel?: boolean): void {
+  public cancelAllOtherBookStatuses(): void{
+        // cancel any other user preferences for this book (want to read, currently reading, did not finish)
+    if(this.userWantsToRead){
+      try{
+        this.toggleWantToRead(true);
+      }catch (err){ console.log('error canceling want to read status: ', err )}
+    }
+    if(this.userIsReading){
+      try{
+        this.toggleCurrentlyReading(true);
+      }catch (err){ console.log('error canceling currently reading status: ', err )}
+    }
+    if(this.userDidNotFinish){
+      try{
+        this.toggleDidNotFinish(true);
+      }catch (err){ console.log('error canceling did not finish status: ', err )}
+    }
+    if(this.userHasRead){
+      try{
+        this.toggleHaveRead(true);
+      }catch (err){ console.log('error canceling have read status: ', err )}
+    }
+
+  }
+
+  public checkForAndCreateNewBookInDatabase(): Promise<CheckForAndCreateBookResponse> {return new Promise((res, rej) =>{
+    // query against author/title to see if book exists as a work in DB
+    const bookAuthor = encodeURIComponent(this.book.volumeInfo.authors[0]);
+    const bookTitle = encodeURIComponent(this.book?.volumeInfo.title);
+    console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
+    if(!bookAuthor || !bookTitle){
+      console.log('error getting book information, aborting. ');
+      return;
+    }
+
+    this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle).subscribe({
+      next: book => console.log('book found in database: ', res({ book: book, created: false })),
+      error: err => 
+        {
+          if(err.status === 404){
+          this.checkIfLoggedIn();
+          // book doesn't exist in DB, so create a book instance based on author/title in the DB to associate all future want-to-reads with 
+          const newBook = { author: this.book.volumeInfo.authors[0], title: this.book.volumeInfo.title };
+          this.subscriptions.push(this.bookService.createBookInDatabase(newBook).subscribe(
+            {
+              next: newBook => {
+                console.log('NEW BOOK ADDED TO DATABASE:',newBook);
+                this.progressBarService.stopProgressBar();
+                this.databaseBook = newBook;
+                res({ book: newBook, created: true });
+              }, 
+              error: error => {
+                console.error('Error creating book in database:', error);
+                this.progressBarService.stopProgressBar();
+                rej(error);
+              } 
+            }
+          ));
+        }
+      }
+    }))});
+  }
+
+  public toggleHaveRead(cancel?: boolean): void {
+    console.log('haveRead initiating')
+    this.progressBarService.startProgressBar();
+    if(cancel){
+      console.log('REMOVING BOOK FROM READ LIST', this.userInfo.id, this.databaseBook?.id)
+      this.subscriptions.push(this.bookService.deleteBookHasRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
+        console.log('there was an error removing book from read list: ', err);
+        throw(err);
+      })).subscribe(res => {
+        if(res){
+          this.userHasRead = false;
+          this.authService.refreshUserInfo(this.userInfo.id);
+          this.changeDetector.detectChanges();
+        }
+        this.progressBarService.stopProgressBar();
+      }));
+      return;
+    }
+    // cancel any other user preferences for this book (want to read, currently reading, did not finish)
+    this.cancelAllOtherBookStatuses();
+    this.checkForAndCreateNewBookInDatabase().then(res => {
+      console.log('checked for and found or created new book in database: ', res)
+        // add user to list of users who want to read the book
+        const book = res.book as DatabaseBook;
+        const usersWantToRead = JSON.stringify(book.usersWantToRead);
+        const apiBookId = this.apiBookId;
+        console.log(`res: ${book.title} - ${usersWantToRead}`)
+        this.checkIfLoggedIn();
+        console.log('invoking updateBookHaveRead')
+        this.subscriptions.push(this.bookService.updateBookHaveRead(this.userInfo.id, book, apiBookId).subscribe(created => {
+          this.userHasRead = true;
+          this.authService.refreshUserInfo(this.userInfo.id);
+        }));
+        this.progressBarService.stopProgressBar();
+    });
+
+  }
+
+  public toggleWantToRead(cancel?: boolean): void {
     console.log('wantToRead initiated')
     this.progressBarService.startProgressBar();
     if(cancel){
@@ -342,136 +407,131 @@ export class BookPageComponent implements OnInit, OnDestroy{
       }));
       return;
     }
-    // query against author/title to see if book exists as a work in DB
-    const bookAuthor = encodeURIComponent(this.book?.volumeInfo.authors[0]);
-    const bookTitle = encodeURIComponent(this.book?.volumeInfo.title);
-    console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
-    if(!bookAuthor || !bookTitle){
-      console.log('error getting book information, aborting. ');
-      return;
-    }
-    this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle).pipe(
-      catchError(err => {
-        if(err.status === 404){
-          this.checkIfLoggedIn();
-          // book doesn't exist in DB, so create a book instance based on author/title in the DB to associate all future want-to-reads with 
-          console.log('creating new book in DB');
-          const newBook = { author: this.book.volumeInfo.authors[0], title: this.book.volumeInfo.title };
-          this.subscriptions.push(this.bookService.createBookInDatabase(newBook).subscribe(res => {
-            console.log('NEW BOOK CREATED:',res);
-            // add user to list of users who want to read the book
-            const book = res;
-            const userId = this.userInfo.id;
-            const apiBookId = this.apiBookId;
-            this.databaseBook = res;
-            this.bookService.updateBookWantToRead(userId, book, apiBookId).subscribe(created => {
-              this.setUserWantsToRead(created);
-              this.progressBarService.stopProgressBar();
-            })
-          }));
-        }
+    // cancel any other user preferences for this book (want to read, currently reading, did not finish)
+    this.cancelAllOtherBookStatuses();
+    this.checkForAndCreateNewBookInDatabase().then(res => {
+      console.log('checked for and found or created new book in database: ', res)
+        // add user to list of users who want to read the book
+        const book = res.book as DatabaseBook;
+        const usersWantToRead = JSON.stringify(book.usersWantToRead);
+        const apiBookId = this.apiBookId;
+        console.log(`res: ${book.title} - ${usersWantToRead}`)
+        this.checkIfLoggedIn();
+        console.log('invoking updateBookWantToRead')
+        this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
+          this.markAsWantToRead(created);
+          this.authService.refreshUserInfo(this.userInfo.id);
+        }));
         this.progressBarService.stopProgressBar();
-        return throwError(() => new Error('Something went wrong. Please try again.'));
-      })
-    ).subscribe(res => {
-      // book already exists in DB, so add user to existing book:
-      const book = res as DatabaseBook;
-      const usersWantToRead = JSON.stringify(book.usersWantToRead);
-      const apiBookId = this.apiBookId;
-      console.log(`res: ${book.title} - ${usersWantToRead}`)
-      this.checkIfLoggedIn();
-      console.log('invoking updateBookWantToRead')
-      this.subscriptions.push(this.bookService.updateBookWantToRead(this.userInfo.id, book, apiBookId).subscribe(created => {
-        this.setUserWantsToRead(created);
-      }));
-      this.progressBarService.stopProgressBar();
-    }))
+    });
   }
 
-  public setUserWantsToRead(created: DatabaseBook): void{
-    console.log('ADDED book to user list - ', created);
-    this.userWantsToRead = true;
-    this.usersWhoWantToRead.push(this.userInfo);
-    this.changeDetector.detectChanges();
-  }
 
-  public haveRead(cancel?: boolean): void {
-    console.log('haveRead initiating')
+  public toggleCurrentlyReading(cancel?: boolean): void {
+    console.log('currentlyReading initiated')
     this.progressBarService.startProgressBar();
     if(cancel){
-      console.log('REMOVING BOOK FROM READ LIST', this.userInfo.id, this.databaseBook?.id)
-      this.subscriptions.push(this.bookService.deleteBookHasRead(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
-        console.log('there was an error removing book from read list: ', err);
+      console.log('REMOVING BOOK FROM CURRENTLY READING LIST', this.userInfo.id, this.databaseBook?.id)
+      this.subscriptions.push(this.bookService.deleteBookCurrentlyReading(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
+        console.log('there was an error removing book from currently reading list: ', err);
         throw(err);
       })).subscribe(res => {
         if(res){
-          this.userHasRead = false;
+          this.userIsReading = false;
+          // this.usersWhoWantToRead = this.usersWhoWantToRead.filter(user => user.id !== this.userInfo.id);
+          this.authService.refreshUserInfo(this.userInfo.id);
           this.changeDetector.detectChanges();
         }
         this.progressBarService.stopProgressBar();
       }));
       return;
     }
-    if(this.userWantsToRead){
-      try{
-        this.wantToRead(true);
-      }catch (err){ console.log('error canceling want to read status: ', err )}
-    }
-    // query against author/title to see if book exists as a work in DB
-    const bookAuthor = encodeURIComponent(this.book?.volumeInfo.authors[0]);
-    const bookTitle = encodeURIComponent(this.book?.volumeInfo.title);
-    console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
-    if(!bookAuthor || !bookTitle){
-      console.log('error getting book information, aborting. ');
-      return;
-    }
-    this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle).pipe(
-      catchError(err => {
-        if(err.status === 404){
-          this.checkIfLoggedIn();
-          // book doesn't exist in DB, so create a book instance based on author/title in the DB to associate all future want-to-reads with 
-          console.log('creating new book in DB');
-          const newBook = { author: this.book.volumeInfo.authors[0], title: this.book.volumeInfo.title };
-          this.subscriptions.push(this.bookService.createBookInDatabase(newBook).subscribe(res => {
-            console.log('NEW BOOK CREATED:',res);
-            // add user to list of users who want to read the book
-            const book = res;
-            const userId = this.userInfo.id;
-            const apiBookId = this.apiBookId;
-            this.databaseBook = res;
-            console.log('invoking updateBookHaveRead')
-            this.bookService.updateBookHaveRead(userId, book, apiBookId).subscribe(created => {
-              this.userHasRead = true;
-              this.progressBarService.stopProgressBar();
-            })
-          }));
-        }
+    // cancel any other user preferences for this book (want to read, currently reading, did not finish)
+    this.cancelAllOtherBookStatuses();
+    this.checkForAndCreateNewBookInDatabase().then(res => {
+      console.log('checked for and found or created new book in database: ', res)
+        // add user to list of users who want to read the book
+        const book = res.book as DatabaseBook;
+        const apiBookId = this.apiBookId;
+        this.checkIfLoggedIn();
+        console.log('invoking updateBookCurrentlyReading')
+        this.subscriptions.push(this.bookService.updateBookCurrentlyReading(this.userInfo.id, book, apiBookId).subscribe(created => {
+          this.markAsReading(created);
+          this.authService.refreshUserInfo(this.userInfo.id);
+        }));
         this.progressBarService.stopProgressBar();
-        return throwError(() => new Error('Something went wrong. Please try again.'));
-      })
-    ).subscribe(res => {
-      // book already exists in DB, so add user to existing book:
-      const book = res as DatabaseBook;
-      const usersWantToRead = JSON.stringify(book.usersWantToRead);
-      const apiBookId = this.apiBookId;
-      console.log(`res: ${book.title} - ${usersWantToRead}`)
-      this.checkIfLoggedIn();
-      this.subscriptions.push(this.bookService.updateBookHaveRead(this.userInfo.id, book, apiBookId).subscribe(created => {
-        this.userHasRead = true;
-      }));
-      this.progressBarService.stopProgressBar();
-    }))
+    });
   }
 
-  public updateUser(){
-    console.log('updating user')
-    this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
-      if(!res) return;
-      console.log('res: ', res)
-      this.userInfo = res;
-      this.changeDetector.detectChanges();
-    }));
+  public toggleDidNotFinish(cancel?: boolean): void {
+    console.log('wantToRead initiated')
+    this.progressBarService.startProgressBar();
+    if(cancel){
+      console.log('REMOVING BOOK FROM DID NOT FINISH LIST', this.userInfo.id, this.databaseBook?.id)
+      this.subscriptions.push(this.bookService.deleteBookDidNotFinish(this.userInfo.id, this.databaseBook?.id).pipe(catchError(err => {
+        console.log('there was an error removing book from did not finish list: ', err);
+        throw(err);
+      })).subscribe(res => {
+        if(res){
+          this.userDidNotFinish = false;
+          // this.usersWhoWantToRead = this.usersWhoWantToRead.filter(user => user.id !== this.userInfo.id);
+          this.authService.refreshUserInfo(this.userInfo.id);
+          this.changeDetector.detectChanges();
+        }
+        this.progressBarService.stopProgressBar();
+      }));
+      return;
+    }
+    this.checkForAndCreateNewBookInDatabase().then(res => {
+      console.log('checked for and found or created new book in database: ', res)
+        // add user to list of users who want to read the book
+        const book = res.book as DatabaseBook;
+        const apiBookId = this.apiBookId;
+        this.checkIfLoggedIn();
+        console.log('invoking updateBookDidNotFinish')
+        this.subscriptions.push(this.bookService.updateBookDidNotFinish(this.userInfo.id, book, apiBookId).subscribe(created => {
+          this.markAsDidNotFinish(created);
+          this.authService.refreshUserInfo(this.userInfo.id);
+        }));
+        this.progressBarService.stopProgressBar();
+    });
   }
+
+
+  public markAsReading(created: DatabaseBook): void{
+    console.log('ADDED book to user list - ', created);
+    this.userIsReading = true;
+    // this.usersWhoWantToRead.push(this.userInfo);
+    this.changeDetector.detectChanges();
+  }
+
+  public markAsDidNotFinish(created: DatabaseBook): void{
+    console.log('ADDED book to user list - ', created);
+    this.userDidNotFinish = true;
+    // this.usersWhoWantToRead.push(this.userInfo);
+    this.changeDetector.detectChanges();
+  }
+
+
+
+  public markAsWantToRead(created: DatabaseBook): void{
+    console.log('ADDED book to user list - ', created);
+    this.userWantsToRead = true;
+    this.usersWhoWantToRead.push(this.userInfo);
+    this.changeDetector.detectChanges();
+  }
+
+
+
+  // public updateUser(){
+  //   console.log('updating user')
+  //   this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
+  //     if(!res) return;
+  //     console.log('res: ', res)
+  //     this.userInfo = res;
+  //     this.changeDetector.detectChanges();
+  //   }));
+  // }
 
   public notificationsGlobalRefresh(){
     this.notificationsService.$updateNotifications.next();
@@ -486,7 +546,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     console.log('active user id: ', activeUserID)
     const passiveUserID = user.id;
     const bookTitle = this.book.volumeInfo.title;
-    let note = 'I want to be your book buddy'
+    let note = `I want to be ${bookTitle} book buddies!`
 
     const dialogRef = this.dialog.open(BuddyRequestDialogComponent, {
       data: {
@@ -502,7 +562,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
         this.subscriptions.push(this.buddyService.sendBuddyRequest(activeUserID,passiveUserID,note,bookTitle).subscribe(res => {
           if(res){
             console.log('buddy request successfully sent')
-            this.updateUser();
+            this.authService.refreshUserInfo(this.userInfo.id);
             this.progressBarService.stopProgressBar();
           }
         }));
@@ -531,7 +591,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       next: updatedFriendships => {
         if(updatedFriendships){
           console.log('successfully added new buddy, removed buddy request and retrieved latest buddy list');
-          this.updateUser();
+          this.authService.refreshUserInfo(this.userInfo.id);
           this.notificationsGlobalRefresh();
           this.buddies = updatedFriendships;
           console.log('updated buddies: ', this.buddies);
@@ -553,7 +613,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
     this.subscriptions.push(this.buddyService.rejectBuddyRequest(requester.id, this.userInfo.id).subscribe(res => {
       if(res) console.log('request ignored');
-      this.updateUser();
+      this.authService.refreshUserInfo(this.userInfo.id);
       this.notificationsGlobalRefresh();
       this.progressBarService.stopProgressBar();
       this.changeDetector.detectChanges();
@@ -569,7 +629,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       next: res => {
         if(res){
           console.log('buddy request successfully cancelled');
-          this.updateUser();
+          this.authService.refreshUserInfo(this.userInfo.id);
           this.progressBarService.stopProgressBar();
         }
       },

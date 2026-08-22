@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BuddyService } from '../../services/buddies/buddy.service';
-import { filter, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, filter, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookBuddyUser } from '../../interfaces/user.interface';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { AuthService } from '../../services/auth/auth.service';
@@ -37,21 +37,25 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public $loggedIn!: Observable<boolean>;
   public $userInfo!: Observable<BookBuddyUser | null>;
   public $buddies!: Observable<Array<BookBuddyUser> | null>;
+  public $userInfoRetrieved = new Subject<boolean>();
   private subscriptions: Array<Subscription> = [];
   public buddies!: Array<BookBuddyUser> | null;
   public userInfo: BookBuddyUser = {} as BookBuddyUser;
   public userLoggedIn: boolean = false;
   public wantToReadList: Array<GoogleBookInfo> = [];
   public haveReadList: Array<GoogleBookInfo> = [];
+  public currentlyReadingList: Array<GoogleBookInfo> = [];
+  public didNotFinishList: Array<GoogleBookInfo> = []
   ngOnInit(): void {
     this.$loggedIn = this.store.select(selectIsLoggedIn);
     this.$userInfo = this.store.select(selectUserInfo);
     this.$buddies = this.store.select(selectBuddies);
      console.log('INIT NEW Landing PAGE')
         this.subscriptions.push(
-          this.$userInfo.subscribe(userInfo => {
+          this.$userInfo.pipe(takeUntil(this.$userInfoRetrieved)).subscribe(userInfo => {
             console.log('dashboard getting user info from store: ', userInfo)
             if(userInfo && userInfo.id){
+              this.$userInfoRetrieved.next(true);
               this.progressBarService.startProgressBar();
               this.userInfo = userInfo;
               this.userLoggedIn = true;
@@ -87,7 +91,6 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  // This contains an unsolved bug - getting duplicate loads of the same book in want to read list due to some unknown reason in the subscription.
   public updateUserDashboardItems(userInfo: BookBuddyUser){
     console.log('updating dashboard items for user: ', userInfo);
     this.wantToReadList = [];
@@ -97,12 +100,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
         console.log('getting book by id: ', book.apiId);
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
+            this.wantToReadList.push(bookResult);
             console.log('got book result: ', bookResult);
-            // temporary fix for duplicate books in want to read list - check if book already exists in list before adding it
-            if(!this.wantToReadList.some(b=> b.volumeInfo.title === bookResult.volumeInfo.title)){
-              console.log('(book not yet populated in want to read list)');
-              this.wantToReadList.push(bookResult);
-            }
           },
           error: error => console.log('error getting book by id: ', error.message)
         }));
@@ -118,7 +117,28 @@ export class DashboardComponent implements OnInit, OnDestroy{
           error: error => console.log('error getting book by id: ', error.message)
         }));
       });
+    }
+    if(userInfo.currentlyReading && userInfo.currentlyReading.length > 0){
+      userInfo.currentlyReading.forEach(book => {
+        this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
+          next: bookResult => {
+            this.currentlyReadingList.push(bookResult);
+          },
+          error: error => console.log('error getting book by id: ', error.message)
+        }));
+      });
     }  
+    if(userInfo.didNotFinish && userInfo.didNotFinish.length > 0){
+      userInfo.didNotFinish.forEach(book => {
+        this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
+          next: bookResult => {
+            this.didNotFinishList.push(bookResult);
+          },
+          error: error => console.log('error getting book by id: ', error.message)
+        }));
+      });
+    }  
+  
     this.changeDetector.detectChanges();
   }
 
