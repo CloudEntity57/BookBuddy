@@ -31,7 +31,15 @@
                         </div>
                     </div>                
                 </mat-tab>
-                <mat-tab label="Reading"></mat-tab>
+                <mat-tab label="Reading">
+                    <div class="col-sm-12">
+                        <div *ngIf="!currentlyReadingList.length">Find some books to put in your BookBucketList!</div>
+                        <div class="dashboard-book" *ngFor="let book of currentlyReadingList">
+                            <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
+                            <!-- {{book.volumeInfo.title}} -->
+                        </div>
+                    </div>                
+                </mat-tab>
                 <mat-tab label="Read">
                 <div class="col-sm-12">
                     <div *ngIf="!haveReadList || !haveReadList.length">Go search for books you've read and they'll appear here</div>

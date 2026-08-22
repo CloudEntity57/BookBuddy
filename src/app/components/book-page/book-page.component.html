@@ -26,15 +26,20 @@
             </ng-container>
         </div>
             <div class="action-to-read col-sm-6">
-                <button *ngIf="!userWantsToRead && !userHasRead" (click)="wantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
+                <button *ngIf="!userWantsToRead && !userHasRead" (click)="toggleWantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
                 <ng-container *ngIf="userWantsToRead">
                     You Want To Read This &nbsp; 
-                    <button (click)="wantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                    <button (click)="toggleWantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
                 </ng-container>
-                <button *ngIf="!userHasRead" (click)="haveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
+                <button *ngIf="!userIsReading" (click)="toggleCurrentlyReading()" class="action-button read-button" mat-raised-button>I Am Reading This</button>
+                <ng-container *ngIf="userIsReading">
+                    You Are Reading This &nbsp; 
+                    <button (click)="toggleCurrentlyReading(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                </ng-container>
+                <button *ngIf="!userHasRead" (click)="toggleHaveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
                 <ng-container *ngIf="userHasRead">
                     You Read This &nbsp; 
-                    <button (click)="haveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                    <button (click)="toggleHaveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
                 </ng-container>
                 <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
 
