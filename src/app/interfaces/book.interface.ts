@@ -41,7 +41,6 @@ export interface OpenLibraryBookSearchInfo {
     cover_i: number,
     key: string, // i.e. /works/OL274482
     title: string
-
 }
 
 export interface OpenLibraryAuthorInfo {
@@ -90,6 +89,11 @@ export interface DatabaseBook {
     usersWantToRead?: Array<BookBuddyUser>
 }
 
+export interface CheckForAndCreateBookResponse {
+    book?: DatabaseBook,
+    created: boolean
+}
+
 export interface UserBookDto {
     userId: string,
     bookId: string,
@@ -102,7 +106,8 @@ export enum BookType {
     wantToRead = 0,
     read = 1,
     favorite = 2,
-    reading = 3
+    reading = 3,
+    dnf = 4
 }
 
 export interface CreateBookDto {

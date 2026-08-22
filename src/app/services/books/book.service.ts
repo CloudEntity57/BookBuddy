@@ -93,6 +93,35 @@ export class BookService {
     }))
   }
 
+  public updateBookCurrentlyReading(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
+    const userBookDto: UserBookDto = {
+      bookId: book.id,
+      userId,
+      apiBookId,
+      bookType: BookType.reading,
+      note
+    }
+    return this.http.put(`${environment.apiUrl}/Book/read_status`,userBookDto).pipe(catchError(err => {
+      console.log('error saving new book preference: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong adding book to your currently reading list. Please try again.'));
+    }))
+  }
+
+  public updateBookDidNotFinish(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
+    const userBookDto: UserBookDto = {
+      bookId: book.id,
+      userId,
+      apiBookId,
+      bookType: BookType.dnf,
+      note
+    }
+    return this.http.put(`${environment.apiUrl}/Book/read_status`,userBookDto).pipe(catchError(err => {
+      console.log('error saving new book preference: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong adding book to your did not finish list. Please try again.'));
+    }))
+  }
+
+
   public updateBookHaveRead(userId: string, book: DatabaseBook, apiBookId: string, note: string = '' ): Observable<any>{
     const userBookDto: UserBookDto = {
       bookId: book.id,
@@ -115,6 +144,15 @@ export class BookService {
   public deleteBookHasRead(userId: string, bookId?: string): Observable<DatabaseBook>{
     return this.http.delete(`${environment.apiUrl}/Book/has_read/${userId}/${bookId}`) as Observable<DatabaseBook>
   }
+  
+  public deleteBookCurrentlyReading(userId: string, bookId?: string): Observable<DatabaseBook>{
+    return this.http.delete(`${environment.apiUrl}/Book/currently_reading/${userId}/${bookId}`) as Observable<DatabaseBook>
+  }
+
+  public deleteBookDidNotFinish(userId: string, bookId?: string): Observable<DatabaseBook>{
+    return this.http.delete(`${environment.apiUrl}/Book/did_not_finish/${userId}/${bookId}`) as Observable<DatabaseBook>
+  }
+
 
   public getAuthor(author_key: string): Observable<OpenLibraryAuthorInfo>{
     return this.http.get(`${environment.books.openLibraryWorksApi}${author_key}.json`) as Observable<OpenLibraryAuthorInfo>;
