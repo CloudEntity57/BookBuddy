@@ -1,7 +1,18 @@
 <div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <h2>Welcome to BookBuddy!</h2>
+            <p>BookBuddy is a social platform for book lovers to connect, share, and discuss their favorite reads. Whether you're looking for your next great read or want to find like-minded book buddies, BookBuddy has you covered.</p>
+        </div>
+    </div>
     <div>Choose your preferred login method:</div>
     <div class="login-options">
-        <button mat-raised-button (click)="loginWithGoogle()" class="google-login">Log In with Google</button>
-        <button mat-raised-button (click)="loginWithFacebook()" class="facebook-login">Log In with Facebook</button>
+        <button mat-raised-button (click)="loginWithGoogle()" class="login">
+            <fa-icon [icon]="faGoogle"></fa-icon>&nbsp;&nbsp;Google
+        </button>
+        <button mat-raised-button (click)="loginWithFacebook()" class="login">
+            <fa-icon [icon]="faFaceBook"></fa-icon>&nbsp;&nbsp;Facebook
+        </button>
     </div>
+
 </div>
