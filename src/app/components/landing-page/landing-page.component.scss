@@ -14,7 +14,7 @@
 .landing-page-contents{
     min-height: 45vh;
     background-color: styles.$secondary-color;
-    // padding: 0vw 8vw;    
+    // padding: 0vw 8vw;  
     padding-top: 25px;
 }
     
@@ -31,6 +31,14 @@
         border-radius: 25px;
         background-color: styles.$tertiary-color;
     }
+}
+.rank-box{
+    display: flex;
+    justify-content: space-around;
+    color: styles.$action-color;
+}
+.bestsellers{
+    margin-top: 25px;
 }
 .book-thumbnail{
     display: inline-block;

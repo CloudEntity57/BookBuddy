@@ -255,9 +255,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public listenForConversationsToStage(): void{
     this.subscriptions.push(this.messageService.conversationToStage.subscribe(conv => {
-      console.log('got a new conversation')
-      if(conv) this.openMessageBar(conv);
-
+      if(conv) {
+        console.log(`got a new conversation: ${conv.members}`)
+        this.openMessageBar(conv);
+      }
     }));
   }
 
