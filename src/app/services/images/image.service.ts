@@ -21,5 +21,5 @@ export class ImageService {
     if(!userId){
       return `assets/images/default-user-icon.jpg`;
     }
-    return `${environment.apiUrl}/users/profile-image/${userId}`;
+    return `${environment.apiUrl}/users/profile-image/${userId} ? ${environment.apiUrl}/users/profile-image/${userId} : '/assets/images/default-user-icon.jpg'}`;
   }}

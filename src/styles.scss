@@ -44,6 +44,18 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     padding: 10px;
 }
 
+.password-input{
+  position: relative;
+  margin-bottom: 0px !important;
+}
+
+.toggle-visibility{
+  color: #000;
+  position: absolute;
+  top: 30%;
+  right: 0px;
+}
+
 // Customize the entire app. Change :root to your selector if you want to scope the styles.
 :root {
   @include mat.menu-overrides((

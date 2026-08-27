@@ -1,27 +1,30 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { googleAuthConfig } from './auth.config';
 import { BehaviorSubject, catchError, filter, map, Observable, throwError } from 'rxjs';
-import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, UserAPIResponse } from '../../interfaces/user.interface';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, LoginRequestWithEmail, LoginWithEmailResponse, NewUserResponse, UserAPIResponse } from '../../interfaces/user.interface';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { NotificationService } from '../notifications/notification.service';
 import { SignalRService } from '../signalR/signal-r.service';
 import { Store } from '@ngrx/store';
 import { loginSuccess, logoutSuccess, userInfoUpdated } from './store/auth.actions';
+import { Router } from '@angular/router';
+import { ProgressBarService } from '../progress-bar.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private signalRService: SignalRService, private store: Store) {
+  constructor(private oAuthService: OAuthService, private http: HttpClient, private notificationService: NotificationService, private router: Router, private store: Store, private progressBarService: ProgressBarService) {
 
   }
 
   public $isLoggedIn = new BehaviorSubject<boolean>(false);
   public userProfile: any = null;
   public userInfo = new BehaviorSubject<BookBuddyUser>({} as BookBuddyUser);
+
   public async login() {
     // this.oAuthService.initCodeFlow();
     window.location.href = `${environment.apiUrl}/auth/google/login`;
@@ -29,6 +32,14 @@ export class AuthService {
   }
   public loginWithGoogle() {
     window.location.href = `${environment.apiUrl}/auth/google/login`;
+  }
+
+  public registerEmailAccount(userInfo: BookBuddyCreateUser){
+    return this.http.post<NewUserResponse>(`${environment.apiUrl}/auth/register`, userInfo);
+  }
+
+  public loginWithEmail(formData: LoginRequestWithEmail){
+    return this.http.post<LoginWithEmailResponse>(`${environment.apiUrl}/auth/login`, formData);
   }
   public logout() {
     this.userInfo.next({} as BookBuddyUser);
@@ -66,32 +77,61 @@ export class AuthService {
   }
 
 
-  public async initUserInfo(){
-     await this.oAuthService.loadUserProfile().then((user) => {
-      const userProfile = user as UserAPIResponse;
-      console.log('User Profile:', userProfile);
-      // check if user exists in DB
-      const email = userProfile.info.email;
-      this.getUserByEmail(email).subscribe({
-        next: user => {
-          console.log('USER EXISTS IN DB: ', user)
-          this.userInfo.next(user);
-          // save user id in session storage
-          sessionStorage.setItem('user_id', user.id);
-          // this.notificationService.startConnection();
-          this.signalRService.startConnection();
-          this.notificationService.listenForSignalRConnection();    
-      },
-        error: (err: HttpErrorResponse) => {
-          if(err.status == 404){
-            this.newUserLogic(err, userProfile);
-          }
+  public initUser(authToken: string){
+      console.log('Auth token received: ', authToken);
+      sessionStorage.setItem('authToken', authToken);
+      // retrieve user info from the backend using the auth token and store it in session storage
+      this.getCurrentUserInfo().subscribe({
+        next: userInfo => {
+          console.log('User info retrieved: ', userInfo);
+          this.progressBarService.stopProgressBar();
+          sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+          this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
+          this.store.dispatch(loginSuccess({isLoggedIn: true}));
+          // Until
+          if(!userInfo.profileImageUrl){
+            console.log('No profile image found for user, caching Google profile image...');
+            this.cacheGoogleProfileImage(userInfo.id, userInfo.avatarUrl || '').then(resp => {
+              console.log('successfully cached profile image: ', resp)
+              this.refreshUserInfo(userInfo.id);
+            });
+          };
+          // Redirect to the dashboard or any other page
+          this.router.navigate(['/dashboard']);
+          // setTimeout(()=> window.location.href = '/dashboard', 5000);
+        },
+        error: err => {
+          console.error('Error retrieving user info: ', err);
+          // Handle error, maybe redirect to an error page or show a message
         }
-
       });
-      this.userProfile = userProfile;
-    });
   }
+  // public async initUserInfo(){
+  //    await this.oAuthService.loadUserProfile().then((user) => {
+  //     const userProfile = user as UserAPIResponse;
+  //     console.log('User Profile:', userProfile);
+  //     // check if user exists in DB
+  //     const email = userProfile.info.email;
+  //     this.getUserByEmail(email).subscribe({
+  //       next: user => {
+  //         console.log('USER EXISTS IN DB: ', user)
+  //         this.userInfo.next(user);
+  //         // save user id in session storage
+  //         sessionStorage.setItem('user_id', user.id);
+  //         // this.notificationService.startConnection();
+  //         this.signalRService.startConnection();
+  //         this.notificationService.listenForSignalRConnection();    
+  //     },
+  //       error: (err: HttpErrorResponse) => {
+  //         if(err.status == 404){
+  //           this.newUserLogic(err, userProfile);
+  //         }
+  //       }
+
+  //     });
+  //     this.userProfile = userProfile;
+  //   });
+  // }
 
   public newUserLogic(err: HttpErrorResponse, userProfile: UserAPIResponse): void{
     if(err.status === 404){
