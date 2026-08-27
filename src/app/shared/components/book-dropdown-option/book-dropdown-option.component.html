@@ -4,7 +4,13 @@
     <form [formGroup]="book_form">
         <!-- <mat-form-field> -->
             <input #bookBuddySearchInput matInput type="text" [matAutocomplete]="auto" formControlName="book_search" [class]= "dropdown_type" class="search form-control" placeholder={{dropdown_text}}>
+              @if (book_search.value) {
+                <!-- <button tabindex="-1" matSuffix matIconButton aria-label="Clear" (click)="book_search.setValue('')"> -->
+                <mat-icon class="cancel-icon" (click)="book_search.setValue('')">close</mat-icon>
+                <!-- </button> -->
+            }
             <!-- Suffix caret icon -->
+                <!-- <mat-icon *ngIf="book_search.value" class="" (click)="book_search.setValue('')"></mat-icon> -->
                 <mat-icon *ngIf="!displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(false)" tabindex="-1">expand_more</mat-icon>
                 <mat-icon *ngIf="displayChoicesModal" class="down-caret" matSuffix (click)="setChoicesModal(true)" tabindex="-1">expand_less</mat-icon>
                 <mat-icon *ngIf="searchChoice && book_form.get('book_search')?.value?.length" class="search-icon" matSuffix (click)="search()" tabindex="-1">search</mat-icon>

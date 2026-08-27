@@ -1,4 +1,4 @@
-<div class="container">
+<div class="welcome container">
     <div class="row">
         <div class="col-sm-12">
             <h2>Welcome to BookBuddy!</h2>
@@ -10,9 +10,27 @@
         <button mat-raised-button (click)="loginWithGoogle()" class="login">
             <fa-icon [icon]="faGoogle"></fa-icon>&nbsp;&nbsp;Google
         </button>
-        <button mat-raised-button (click)="loginWithFacebook()" class="login">
+        <div class="email_login">
+            <div>Or:</div>
+            <form (submit)="submit()" [formGroup]="emailForm">
+                <mat-form-field class="form-input">
+                    <mat-label>Email</mat-label>
+                    <input formControlName="email" type="email" matInput>
+                </mat-form-field>
+                <mat-form-field class="form-input password-input">
+                    <mat-label>Password</mat-label>
+                    <input formControlName="password" [type]="hidePassword() ? 'password' : 'text'" matInput>
+                    <mat-icon class="toggle-visibility" (click)="toggleVisibility($event)">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </mat-form-field>
+                <button class="action-button" type="submit" mat-raised-button>Log In</button>
+                <div class="forgot-password">Forgot Your Password? </div>
+                <div class="bottom_option">Don't have an account? </div>
+                <div class="create_account" (click)="createAccount()">Create an Account</div>
+            </form>
+        </div>
+        <!-- <button mat-raised-button (click)="loginWithFacebook()" class="login">
             <fa-icon [icon]="faFaceBook"></fa-icon>&nbsp;&nbsp;Facebook
-        </button>
+        </button> -->
     </div>
 
 </div>

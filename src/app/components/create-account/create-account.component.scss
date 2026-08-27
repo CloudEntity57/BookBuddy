@@ -3,7 +3,7 @@
     margin-top: 30px;
 }
 .login-options{
-    height:380px;
+    height:350px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -17,12 +17,9 @@
 }
 
 .email_login{
-    height: 320px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+    margin-top: 25px;
+    height: 300px;
     form{
-        height: 320px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -31,9 +28,6 @@
 .create_account{
     cursor: pointer;
     color: styles.$action-color;
-}
-.forgot-password{
-    cursor: pointer !important;
 }
 .bottom_option{
     margin-top:15px;

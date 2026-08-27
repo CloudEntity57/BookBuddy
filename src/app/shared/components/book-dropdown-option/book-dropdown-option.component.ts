@@ -13,10 +13,11 @@ import { BookService } from '../../../services/books/book.service';
 import { CommonModule } from '@angular/common';
 import { BaseBook } from '../base-book/base-book';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-book-dropdown-option',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatTooltipModule, MatSelectModule, MatInputModule, MatAutocompleteModule, MatButtonToggleModule, MatIconModule ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatTooltipModule, MatSelectModule, MatInputModule, MatAutocompleteModule, MatButtonModule, MatButtonToggleModule, MatIconModule ],
   templateUrl: './book-dropdown-option.component.html',
   styleUrl: './book-dropdown-option.component.scss'
 })
@@ -38,6 +39,8 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
   private subscriptions: Array<Subscription> = [];
 
   public book_form!: FormGroup;
+  public get book_search(): FormControl { return this.book_form.controls['book_search'] as FormControl }
+
 
   ngOnInit(): void {
     this.book_form = this.fb.group({

@@ -34,6 +34,7 @@ export interface BookBuddyUser{
 export interface BookBuddyCreateUser{
     userName: string,
     email: string,
+    password?: string,
     avatarUrl?: string,
     createdAt?: Date,
     lastLoginAt?: Date
@@ -55,4 +56,19 @@ export interface CreateBuddyDTO{
 export interface BookBuddyDeleteRequest{
     activeUserID: string,
     passiveUserID: string
+}
+
+export interface NewUserResponse{
+    provider: number,
+    token: string
+}
+
+export interface LoginWithEmailResponse{
+    provider: number,
+    token: string
+}
+
+export interface LoginRequestWithEmail{
+    username: string,
+    password: string
 }
