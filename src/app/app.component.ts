@@ -307,6 +307,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
             console.log('user icon url: ', this.userIconURL)
             if(userInfo && userInfo.id){
               this.$userReceived.next();
+              // this.notificationService.startConnection();
               this.signalRService.startConnection();
               this.notificationService.listenForSignalRConnection();    
 

@@ -7,40 +7,45 @@ import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, 
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { LoginRequestWithEmail } from '../../interfaces/user.interface';
 import { Subscription } from 'rxjs';
-import { ValidationHandler } from 'angular-oauth2-oidc';
+import { ProgressBarService } from '../../services/progress-bar.service';
 
 @Component({
-  selector: 'app-auth',
+  selector: 'app-create-account',
   imports: [
     MatButtonModule,
     MatInputModule,
-    MatIconModule,
     FontAwesomeModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    MatIconModule
 ],
-  templateUrl: './auth.component.html',
-  styleUrl: './auth.component.scss'
+  templateUrl: './create-account.component.html',
+  styleUrl: './create-account.component.scss'
 })
-export class AuthComponent implements OnInit, OnDestroy{
+export class CreateAccountComponent implements OnInit, OnDestroy{
   constructor() {}
   private authService: AuthService = inject(AuthService);
+  private progressBarService: ProgressBarService = inject(ProgressBarService);
   public faGoogle = faGoogle;
   public faFaceBook = faFacebook;
   public formBuilder = inject(FormBuilder);
   public router = inject(Router);
   public emailForm!: FormGroup;
-  public get emailController(): FormControl { return this.emailForm.controls['email'] as FormControl; };
-  public hidePassword = signal(true);
   public subscriptions: Array<Subscription> = [];
+  public get emailController(): FormControl { return this.emailForm.controls['email'] as FormControl; };
+  public get userNameController(): FormControl { return this.emailForm.controls['userName'] as FormControl; };
+  public get passwordController(): FormControl { return this.emailForm.controls['password'] as FormControl; };
+
+  public hidePassword = signal(true);
+
 
   public ngOnInit(): void {
     this.emailForm = this.formBuilder.group({
       email: new FormControl('', [Validators.required, Validators.email]),
-      password: new FormControl('', [Validators.required])
+      userName: new FormControl('', [Validators.required]),
+      password: new FormControl('', [Validators.required, Validators.minLength(8)])
     })
   }
 
@@ -53,33 +58,33 @@ export class AuthComponent implements OnInit, OnDestroy{
   }
 
   public submit(){
+    console.log(`password: ${this.passwordController.value}`)
     if(this.emailForm.invalid) return;
     const formData = this.emailForm.value;
-    console.log('form data: ', formData);
-    const request: LoginRequestWithEmail = {
-      username: formData.email,
-      password: formData.password
-    }
-    this.subscriptions.push(this.authService.loginWithEmail(request).subscribe({
+    console.log('form data: ', formData)
+    this.progressBarService.startProgressBar();
+    this.subscriptions.push(this.authService.registerEmailAccount(formData).subscribe({
       next: res => {
-        const token: string = res.token;
-        if(token){
-          this.authService.initUser(token);
+        console.log('registered new user: ', res)
+        const authToken = res.token;
+        if(authToken){
+          this.authService.initUser(authToken);
+        } else {
+          console.error('No auth token found in the callback URL.');
+          // Handle error, maybe redirect to an error page or show a message
         }
       },
       error: err => {
-        console.error('There was an error logging in: ', err);
+        console.log('error submitting user data: ', err)
+        this.progressBarService.stopProgressBar();
       }
     }));
-  }
-
-  public createAccount(){
-    this.router.navigate(['create-account']);
   }
 
   public toggleVisibility(event: MouseEvent){
     this.hidePassword.update(value => !value);
     event.preventDefault();
   }
+
 
 }

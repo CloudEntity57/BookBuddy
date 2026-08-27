@@ -1,0 +1,43 @@
+<div class="welcome container">
+    <div class="row">
+        <div class="col-sm-12">
+            <h2>Create Account</h2>
+            <p></p>
+        </div>
+    </div>
+    <div>Enter your email, pick a username and a strong password:</div>
+    <div class="login-options">
+
+        <div class="email_login">
+            <form (submit)="submit()" [formGroup]="emailForm">
+                <mat-form-field class="form-input">
+                    <mat-label>Email</mat-label>
+                    <input formControlName="email" type="email" placeholder="proust@swannsway.com" matInput>
+                    <mat-error>Email is required</mat-error>
+                </mat-form-field>
+                <mat-form-field class="form-input">
+                    <mat-label>Username</mat-label>
+                    <input formControlName="userName" type="string" placeholder="Marcel Proust" matInput>
+                    <mat-error>Username is required</mat-error>
+                </mat-form-field>
+                <mat-form-field class="form-input password-input">
+                    <mat-label>Password</mat-label>
+                    <input formControlName="password" placeholder="8 characters minimum" [type]="hidePassword() ? 'password' : 'text'" matInput>
+                    <mat-icon class="toggle-visibility" (click)="toggleVisibility($event)">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    <mat-error>
+                        @if(passwordController.hasError('minlength')){
+                            Password must be 8 characters or longer
+                        }@else{
+                            Password is required
+                        }
+                    </mat-error>
+                </mat-form-field>
+                <button class="action-button" type="submit" mat-raised-button>Create Account</button>
+            </form>
+        </div>
+        <!-- <button mat-raised-button (click)="loginWithFacebook()" class="login">
+            <fa-icon [icon]="faFaceBook"></fa-icon>&nbsp;&nbsp;Facebook
+        </button> -->
+    </div>
+
+</div>
