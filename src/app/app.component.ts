@@ -8,7 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthService } from './services/auth/auth.service';
 import { CommonModule } from '@angular/common';
-import { debounceTime, filter, fromEvent, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter, fromEvent, Observable, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { BookDropdownOptionComponent } from "./shared/components/book-dropdown-option/book-dropdown-option.component";
 import { ProgressBarService } from './services/progress-bar.service';
 import { MessageBarComponent } from './components/message-bar/message-bar.component';
@@ -53,7 +53,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   private lastScrollTop = 0;
   title = 'bookbuddy';
   public isLoggedIn: boolean = false;
-  public userIconURL?: string;
+  public $retrieveUserInfo = new BehaviorSubject<boolean>(true);
+  public userIconURL?: string = '';
   public subscriptions: Array<Subscription> = [];
   public isHovering: boolean = false;
   public closeTimeout: any;
@@ -73,13 +74,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     this.$loggedIn = this.store.select(selectIsLoggedIn);
     if(authToken){
       console.log('app.component.ts found an auth token: ', authToken);
-      this.setupUserInfo(authToken);
+      this.callAPIForCurrentUser(authToken);
     }
     this.subscriptions.push(this.$loggedIn.subscribe((loggedIn)=>{
       if(loggedIn){
         console.log('app.component.ts has been informed user just logged in');
         console.log('selecting user from store'); 
-        this.store.select(selectUserInfo).pipe(take(1)).subscribe(userInfo => {
+        this.store.select(selectUserInfo).pipe(filter(() => this.$retrieveUserInfo.getValue() === true)).subscribe(userInfo => {
+        // this.store.select(selectUserInfo).subscribe(userInfo => {
           this.user = userInfo || {} as BookBuddyUser;
           this.populateUserInfo(this.user);
         });
@@ -216,7 +218,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
     })
   }
 
-  public setupUserInfo(authToken: string): void {
+  public callAPIForCurrentUser(authToken: string): void {
       console.log('app.component.ts: auth token found in session storage: ', authToken)
       this.authService.getCurrentUserInfo().subscribe({
       // this.store.select(selectUserInfo).subscribe({
@@ -224,6 +226,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
           if(!userInfo || !userInfo.id){
             return;
           }
+          this.store.dispatch(userInfoUpdated({userInfo}));
           this.populateUserInfo(userInfo);
       },
         error: err => {
@@ -295,34 +298,38 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   public populateUserInfo(userInfo: BookBuddyUser): void {
-          console.log('Appcomponent.ts user info retrieved: ', userInfo);
-          sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
-          sessionStorage.setItem('user_id', userInfo.id);
-          this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
-          this.store.dispatch(loginSuccess({isLoggedIn: true}));
-          this.isLoggedIn = true;
-          // Redirect to the dashboard or any other page
-            // populate the user icon 
-            this.userIconURL = userInfo.avatarUrl;
-            console.log('user icon url: ', this.userIconURL)
-            if(userInfo && userInfo.id){
-              this.$userReceived.next();
-              // this.notificationService.startConnection();
-              this.signalRService.startConnection();
-              this.notificationService.listenForSignalRConnection();    
+      console.log('Appcomponent.ts user info retrieved: ', userInfo);
+      sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+      sessionStorage.setItem('user_id', userInfo.id);
+      // this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
+      this.store.dispatch(loginSuccess({isLoggedIn: true}));
+      //stop subscription after essential user info has been retrieved and stored in global state
+      if(userInfo && userInfo.id && userInfo.profileImageUrl){
+        this.$retrieveUserInfo.next(false);
+        this.isLoggedIn = true;
+      }
+      // Redirect to the dashboard or any other page
+        // populate the user icon 
+        this.userIconURL = userInfo.avatarUrl ? userInfo.profileImageUrl : userInfo.avatarUrl;
+        console.log('user icon url: ', this.userIconURL)
+        if(userInfo && userInfo.id){
+          this.$userReceived.next();
+          // this.notificationService.startConnection();
+          this.signalRService.startConnection();
+          this.notificationService.listenForSignalRConnection();    
 
-              // get all current notifications on page load
-              this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
-                if(res){
-                  console.log('got user notifications from database: ', res)
-                  this.notifications = res;
-                  this.checkForUnreadNotifications()
-                }
-              }));
-              // get buddies
-              this.store.dispatch(loadBuddies({userId: userInfo.id}));
-              console.log('dispatched get buddies action for global state');
+          // get all current notifications on page load
+          this.subscriptions.push(this.notificationsService.getUserNotifications(userInfo.id).subscribe(res => {
+            if(res){
+              console.log('got user notifications from database: ', res)
+              this.notifications = res;
+              this.checkForUnreadNotifications()
             }
+          }));
+          // get buddies
+          this.store.dispatch(loadBuddies({userId: userInfo.id}));
+          console.log('dispatched get buddies action for global state');
+        }
   }
   
   public buddyRequesterName(userId: string): string{

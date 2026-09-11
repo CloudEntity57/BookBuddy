@@ -27,7 +27,7 @@ import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit, OnDestroy{
-  public $userInitiated = new Subject<void>();
+  public $retrieveUserInfo = new BehaviorSubject<boolean>(true);
   public $bookLoaded = new Subject<void>();
   public userImageService!: ImageService;
 
@@ -37,8 +37,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public $loggedIn!: Observable<boolean>;
   public $userInfo!: Observable<BookBuddyUser | null>;
   public $buddies!: Observable<Array<BookBuddyUser> | null>;
-  public $userInfoRetrieved = new Subject<boolean>();
   private subscriptions: Array<Subscription> = [];
+  public profileImageUrl: string = '';
   public buddies!: Array<BookBuddyUser> | null;
   public userInfo: BookBuddyUser = {} as BookBuddyUser;
   public userLoggedIn: boolean = false;
@@ -52,12 +52,21 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this.$buddies = this.store.select(selectBuddies);
      console.log('INIT NEW Landing PAGE')
         this.subscriptions.push(
-          this.$userInfo.pipe(takeUntil(this.$userInfoRetrieved)).subscribe(userInfo => {
+          this.$userInfo.pipe(
+            filter(() => this.$retrieveUserInfo.getValue() === true),
+          ).subscribe(userInfo => {
+          // this.$userInfo.subscribe(userInfo => {
             console.log('dashboard getting user info from store: ', userInfo)
-            if(userInfo && userInfo.id){
-              this.$userInfoRetrieved.next(true);
+            //stop subscription after essential user info has been retrieved 
+            if(userInfo && userInfo.id && userInfo.profileImageUrl){
+              this.$retrieveUserInfo.next(false);
               this.progressBarService.startProgressBar();
               this.userInfo = userInfo;
+              if(userInfo.profileImageUrl){
+                this.profileImageUrl = userInfo.profileImageUrl;
+              }else{
+                this.profileImageUrl = this.imageService.getProfileImage(userInfo.id);
+              }
               this.userLoggedIn = true;
               this.updateUserDashboardItems(userInfo)
               // retrieve buddy list

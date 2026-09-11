@@ -2,7 +2,7 @@
 <div class="custom-container">
     <div class="dashboard-header">
         <div>
-            <div class="dashboard-profile-pic" [style.background-image]="`url(${userImageService.getProfileImage(userInfo.id)})`"></div>
+            <div class="dashboard-profile-pic" [style.background-image]="`url(${profileImageUrl})`"></div>
         </div>
         <div class="dashboard-username">
             <div>{{userInfo.userName}}</div>
@@ -14,7 +14,7 @@
             <div *ngIf="!buddies || !buddies.length">Go make some BookBuddies! You can DM each other about books you both want to read!</div>
             <div class="buddy" *ngFor="let buddy of buddies">
                 <span class="username-and-icon">
-                    <span class="user-avatar" [style.background-image]="`url(${userImageService.getProfileImage(buddy.id)})`"></span>
+                    <span class="user-avatar" [style.background-image]="`url(${buddy.profileImageUrl})`"></span>
                     <span class="user-name">{{buddy.userName}}</span>
                 </span>
                 <span class="invited-buddy"><button (click)="initiateMessaging(buddy)" class="action-button buddy-button" mat-raised-button>Message</button></span>

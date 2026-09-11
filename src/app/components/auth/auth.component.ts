@@ -33,7 +33,9 @@ export class AuthComponent implements OnInit, OnDestroy{
   public formBuilder = inject(FormBuilder);
   public router = inject(Router);
   public emailForm!: FormGroup;
-  public get emailController(): FormControl { return this.emailForm.controls['email'] as FormControl; };
+  public get emailControl(): FormControl { return this.emailForm.controls['email'] as FormControl; };
+  public get passwordControl(): FormControl { return this.emailForm.controls['password'] as FormControl; };
+
   public hidePassword = signal(true);
   public subscriptions: Array<Subscription> = [];
 

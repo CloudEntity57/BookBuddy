@@ -7,8 +7,11 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    margin: 15px 25vw;
-    @media(max-width: 992px){
+    margin: 15px 350px;
+    @media(max-width: 1600px){
+        margin: 15px 25vw;
+    }
+    @media(max-width: 995px){
         margin: 15px 18vw;
     }
     @media(max-width: 767px){

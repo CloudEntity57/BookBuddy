@@ -17,17 +17,18 @@
         <span class="app-slogan">"Meet a buddy, read a book"</span>
       </span>
 
-        <div class="right-controls">
-
-            <!-- Search Bar -->
+        <div class="controls-column">
+          <div class="right-controls">
+ <!-- Search Bar -->
+            
             <app-book-dropdown-option dropdown_type="navbar-search" dropdown_text="dropdown for options"></app-book-dropdown-option>
 
             <button *ngIf="!isLoggedIn" (click)="goToLogin()" mat-raised-button class="login">Log In</button>
 
               <!-- User Icon -->
-             <ng-container *ngIf="isLoggedIn && userIconURL">
+             <ng-container *ngIf="isLoggedIn">
               <div class="user-icon"
-                  [style.background-image]="`url(${userImageService.getProfileImage(user.id)})`"
+                  [style.background-image]="`url(${userIconURL})`"
                   [matMenuTriggerFor]="userMenu" 
                 #menuTrigger="matMenuTrigger">
               </div>
@@ -59,6 +60,9 @@
                   <div (click)="logout()" mat-menu-item>Log Out</div>
                 </mat-menu>
             </div>
+          </div>
+
+           
 
         </div>
     </div>

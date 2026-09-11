@@ -42,6 +42,11 @@ main{
         }
     }
 }
+.controls-column{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
 .app-slogan{
     font-style: italic;
     color: styles.$tertiary-color;
