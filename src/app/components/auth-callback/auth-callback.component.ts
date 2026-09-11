@@ -19,6 +19,7 @@ export class AuthCallbackComponent implements OnInit {
     const urlParams = new URLSearchParams(window.location.search);
     const authToken = urlParams.get('token');
     if(authToken){
+      console.log('Auth token in callback received: ', authToken);
       this.authService.initUser(authToken);
     } else {
       console.error('No auth token found in the callback URL.');

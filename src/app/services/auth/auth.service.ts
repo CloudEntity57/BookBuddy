@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { googleAuthConfig } from './auth.config';
-import { BehaviorSubject, catchError, filter, map, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, firstValueFrom, map, Observable, throwError } from 'rxjs';
 import { BookBuddyCreateUser, BookBuddyUser, GoogleUser, LoginRequestWithEmail, LoginWithEmailResponse, NewUserResponse, UserAPIResponse } from '../../interfaces/user.interface';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -22,6 +22,7 @@ export class AuthService {
   }
 
   public $isLoggedIn = new BehaviorSubject<boolean>(false);
+  public $retrieveUserInfo = new BehaviorSubject<boolean>(false);
   public userProfile: any = null;
   public userInfo = new BehaviorSubject<BookBuddyUser>({} as BookBuddyUser);
 
@@ -83,7 +84,7 @@ export class AuthService {
       // retrieve user info from the backend using the auth token and store it in session storage
       this.getCurrentUserInfo().subscribe({
         next: userInfo => {
-          console.log('User info retrieved: ', userInfo);
+          console.log('Current User info retrieved: ', userInfo);
           this.progressBarService.stopProgressBar();
           sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
           this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
@@ -93,6 +94,7 @@ export class AuthService {
             console.log('No profile image found for user, caching Google profile image...');
             this.cacheGoogleProfileImage(userInfo.id, userInfo.avatarUrl || '').then(resp => {
               console.log('successfully cached profile image: ', resp)
+              this.$retrieveUserInfo.next(true);
               this.refreshUserInfo(userInfo.id);
             });
           };
@@ -167,7 +169,18 @@ export class AuthService {
     try {
       // Fetch image from Google URL
       const response = await fetch(googleUrl);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch Google profile image: ${response.status} ${response.statusText}`
+        );
+      }
       const blob = await response.blob();
+
+      if (!blob.type.startsWith('image/')) {
+        throw new Error(
+          `Google profile URL did not return an image. Content-Type: ${blob.type}`
+        );
+      }
 
       // Convert Blob → File for FormData
       const file = new File([blob], 'profile.jpg', { type: blob.type });
@@ -177,8 +190,7 @@ export class AuthService {
       formData.append('file', file);
 
       // Upload to API
-      await this.http
-        .post(`${environment.apiUrl}/users/upload-image/${userId}`, formData).toPromise();
+      await firstValueFrom(this.http.post(`${environment.apiUrl}/users/upload-image/${userId}`, formData));
     } catch (err) {
       console.error('Failed to cache Google profile image:', err);
     }

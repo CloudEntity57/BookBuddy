@@ -16,11 +16,19 @@
                 <mat-form-field class="form-input">
                     <mat-label>Email</mat-label>
                     <input formControlName="email" type="email" matInput>
+                    <mat-error>
+                        @if(emailControl.hasError('email')){
+                            Not a valid email address
+                        }@else{
+                            Email is required
+                        }
+                    </mat-error>
                 </mat-form-field>
                 <mat-form-field class="form-input password-input">
                     <mat-label>Password</mat-label>
                     <input formControlName="password" [type]="hidePassword() ? 'password' : 'text'" matInput>
                     <mat-icon class="toggle-visibility" (click)="toggleVisibility($event)">{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    <mat-error>Password is required</mat-error>
                 </mat-form-field>
                 <button class="action-button" type="submit" mat-raised-button>Log In</button>
                 <div class="forgot-password">Forgot Your Password? </div>
