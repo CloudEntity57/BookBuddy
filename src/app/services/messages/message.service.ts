@@ -54,39 +54,39 @@ export class MessageService {
     return this.http.post(`${environment.apiUrl}/message`, messageDTO) as Observable<MessageDTO>;
   }
 
-    public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
-      const newConversation: CreateConversationDto = {
-        name: `Message between ${user1.userName} and ${user2.userName}`,
-        isGroup: false,
-      };
-  
-      this.createConversation(newConversation).pipe(
-        switchMap((conv) => {
-          // if(conv && conv.id){
-            const addFirst = this.addUserToConversation(user1, conv.id);
-            const addSecond = this.addUserToConversation(user2, conv.id);
-            return forkJoin([addFirst, addSecond, of(conv)]);
-          // }
-        })
-      ).subscribe({
-        next: ([firstResp, secondResp, conv]) => {
-          console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
-          // add 2 members manually to display conversation name on very first load:
-          conv.members.push(firstResp);
-          conv.members.push(secondResp);
-          // Navigate to chat
-          this.conversationToStage.next(conv);
-          if(this.progressBarService.isLoading.getValue() === true){
-            this.progressBarService.stopProgressBar();
-          }
-          // this.progressBarService.stopProgressBar();
-        },
-        error: (error) => {
-          console.log(error);
-          // this.progressBarService.stopProgressBar();
+  public createNewConversation(user1: BookBuddyUser, user2: BookBuddyUser ): void{
+    const newConversation: CreateConversationDto = {
+      name: `Message between ${user1.userName} and ${user2.userName}`,
+      isGroup: false,
+    };
+
+    this.createConversation(newConversation).pipe(
+      switchMap((conv) => {
+        // if(conv && conv.id){
+          const addFirst = this.addUserToConversation(user1, conv.id);
+          const addSecond = this.addUserToConversation(user2, conv.id);
+          return forkJoin([addFirst, addSecond, of(conv)]);
+        // }
+      })
+    ).subscribe({
+      next: ([firstResp, secondResp, conv]) => {
+        console.log(`Created new conversation ${conv} with 2 participants:`, firstResp, secondResp);
+        // add 2 members manually to display conversation name on very first load:
+        conv.members.push(firstResp);
+        conv.members.push(secondResp);
+        // Navigate to chat
+        this.conversationToStage.next(conv);
+        if(this.progressBarService.isLoading.getValue() === true){
+          this.progressBarService.stopProgressBar();
         }
-      });
-    }
+        // this.progressBarService.stopProgressBar();
+      },
+      error: (error) => {
+        console.log(error);
+        // this.progressBarService.stopProgressBar();
+      }
+    });
+  }
 
   public addUserToConversation(user: BookBuddyUser, conversationId: string): Observable<ConversationMember>{
     const newMember: ConversationMember = {

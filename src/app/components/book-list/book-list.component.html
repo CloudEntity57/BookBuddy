@@ -1,0 +1,21 @@
+<!-- <div class="col-sm-12"> -->
+    <!-- <div *ngIf="!books || !books.length">{{emptyListMessage}}</div>
+    <div class="booklist-book" *ngFor="let book of books">
+        <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
+        {{book.volumeInfo.title}}
+    </div> -->
+    <div>
+        <div *ngIf="!books || !books.length">{{emptyListMessage}}</div>
+        <div class="booklist-book" *ngFor="let book of books">
+            <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
+            <div class="book-info-column">
+                <div class="book-info-column-contents">
+                    <div (click)="goToBookPage(book)" class="book-title">{{book.volumeInfo.authors?.[0]}} - {{book.volumeInfo.title}}</div>
+                    <div class="book-rating" *ngIf="ReadStatus == BookType.read">
+                        <span class="fa fa-star checked"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- </div> -->

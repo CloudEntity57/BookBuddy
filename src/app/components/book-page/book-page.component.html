@@ -25,23 +25,25 @@
                 <div class="book-description col-sm-8" [innerHTML]="description || 'no description available'"></div>
             </ng-container>
         </div>
-            <div class="action-to-read col-sm-6">
-                <button *ngIf="!userWantsToRead && !userHasRead" (click)="toggleWantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
-                <ng-container *ngIf="userWantsToRead">
-                    You Want To Read This &nbsp; 
-                    <button (click)="toggleWantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
-                </ng-container>
-                <button *ngIf="!userIsReading" (click)="toggleCurrentlyReading()" class="action-button read-button" mat-raised-button>I Am Reading This</button>
-                <ng-container *ngIf="userIsReading">
-                    You Are Reading This &nbsp; 
-                    <button (click)="toggleCurrentlyReading(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
-                </ng-container>
-                <button *ngIf="!userHasRead" (click)="toggleHaveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
-                <ng-container *ngIf="userHasRead">
-                    You Read This &nbsp; 
-                    <button (click)="toggleHaveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
-                </ng-container>
-                <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+            <div class="action-read-status col-sm-6">
+                <div class="buttons">
+                    <button *ngIf="!userIsReading && !userWantsToRead && !userHasRead" (click)="toggleWantToRead()" class="action-button read-button" mat-raised-button>I Want To Read This</button>
+                    <ng-container *ngIf="userWantsToRead">
+                        <div class="read-status">You Want To Read This</div>
+                        <button (click)="toggleWantToRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                    </ng-container>
+                    <button *ngIf="!userIsReading && !userWantsToRead && !userHasRead" (click)="toggleCurrentlyReading()" class="action-button read-button" mat-raised-button>I Am Reading This</button>
+                    <ng-container *ngIf="userIsReading">
+                        <div class="read-status">You Are Currently Reading This</div>
+                        <button (click)="toggleCurrentlyReading(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                    </ng-container>
+                    <button *ngIf="!userHasRead" (click)="toggleHaveRead()" class="action-button read-button" mat-raised-button>I Read This</button>
+                    <ng-container *ngIf="userHasRead">
+                        <div class="read-status">You Have Read This</div>
+                        <button (click)="toggleHaveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+                    </ng-container>
+                    <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+                </div>
 
                 <ul class="basic-instructions">
                     <li>Send book buddy requests to people who want to read something you want to read, and if they are interested they will message you back, and/or accept your buddy request.</li>
@@ -55,7 +57,7 @@
                     <div class="want-to-read-header">Check out who else wants to read <b>{{title}}:</b></div>
                     <div class="user-want-to-read" *ngFor="let user of usersWhoWantToRead">
                         <span class="username-and-icon">
-                            <span class="user-avatar" [style.background-image]="`url(${userImageService.getProfileImage(user.id)})`"></span>
+                            <span class="user-avatar" [style.background-image]="`url(${user.profileImageUrl})`"></span>
                             <span class="user-name">{{user.userName}}</span>
                         </span>
 
