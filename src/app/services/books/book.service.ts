@@ -174,7 +174,9 @@ export class BookService {
   }
 
   public convertNytToGoogle(book: NyTimesBook): Observable<GoogleBookResponse>{
-    return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
+    // return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
+    // had to drop the isbn: prefix because it wasn't returning results for any of the books on the NY Times bestseller list, even though they all have valid ISBNs.  Not sure why this is happening, but this works for now.
+    return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
       map(list => list as GoogleBookResponse),
       shareReplay(1)
     )

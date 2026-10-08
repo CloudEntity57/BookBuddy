@@ -22,32 +22,15 @@
         </div>
         <div class="col sm-7">
             <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
-                <mat-tab label="Want To Read">
-                    <div class="col-sm-12">
-                        <div *ngIf="!wantToReadList.length">Find some books to put in your BookBucketList!</div>
-                        <div class="dashboard-book" *ngFor="let book of wantToReadList">
-                            <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
-                            <!-- {{book.volumeInfo.title}} -->
-                        </div>
-                    </div>                
+                <mat-tab label="Books I've Read">
+                    <app-book-list [books]="haveReadList" [emptyListMessage]="'Add some books you\'ve read!'" [ReadStatus]="readStatus.read"></app-book-list>
                 </mat-tab>
                 <mat-tab label="Reading">
-                    <div class="col-sm-12">
-                        <div *ngIf="!currentlyReadingList.length">Find some books to put in your BookBucketList!</div>
-                        <div class="dashboard-book" *ngFor="let book of currentlyReadingList">
-                            <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
-                            <!-- {{book.volumeInfo.title}} -->
-                        </div>
-                    </div>                
+                    <app-book-list [books]="currentlyReadingList" [emptyListMessage]="'Add some books you\'re currently reading!'" [ReadStatus]="readStatus.reading"></app-book-list>
                 </mat-tab>
-                <mat-tab label="Read">
-                <div class="col-sm-12">
-                    <div *ngIf="!haveReadList || !haveReadList.length">Go search for books you've read and they'll appear here</div>
-                    <div class="dashboard-book" *ngFor="let book of haveReadList">
-                        <div (click)="goToBookPage(book)" class="book-image" [style.background-image]="`url(${book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail})`"></div>
-                        <!-- {{book.volumeInfo.title}} -->
-                    </div>
-                </div>                   </mat-tab>
+                <mat-tab label="Want To Read">
+                    <app-book-list [books]="wantToReadList" [emptyListMessage]="'Find some books to add to your BookBucketList!'" [ReadStatus]="readStatus.wantToRead"></app-book-list>
+                </mat-tab>
             </mat-tab-group>
         </div>
         </div>

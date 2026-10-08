@@ -7,21 +7,23 @@ import { AuthService } from '../../services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { ImageService } from '../../services/images/image.service';
 import { BookService } from '../../services/books/book.service';
-import { GoogleBookInfo } from '../../interfaces/book.interface';
+import { BookType, GoogleBookInfo } from '../../interfaces/book.interface';
 import { NavigationEnd, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MessageService } from '../../services/messages/message.service';
 import { Store } from '@ngrx/store';
 import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
+import { BookListComponent } from "../book-list/book-list.component";
 
 @Component({
   selector: 'app-dashboard',
   imports: [
     CommonModule,
     MatButtonModule,
-    MatTabsModule
-  ],
+    MatTabsModule,
+    BookListComponent,
+],
   standalone: true,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -30,6 +32,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public $retrieveUserInfo = new BehaviorSubject<boolean>(true);
   public $bookLoaded = new Subject<void>();
   public userImageService!: ImageService;
+  public readStatus = BookType;
 
   constructor(private router: Router, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private changeDetector: ChangeDetectorRef, private imageService: ImageService, private bookService: BookService, private messageService: MessageService, private store: Store ){ 
     this.userImageService = imageService
@@ -53,12 +56,12 @@ export class DashboardComponent implements OnInit, OnDestroy{
      console.log('INIT NEW Landing PAGE')
         this.subscriptions.push(
           this.$userInfo.pipe(
+            // only retrieve user info when the $retrieveUserInfo BehaviorSubject is true, to avoid unnecessary API calls
             filter(() => this.$retrieveUserInfo.getValue() === true),
           ).subscribe(userInfo => {
-          // this.$userInfo.subscribe(userInfo => {
             console.log('dashboard getting user info from store: ', userInfo)
-            //stop subscription after essential user info has been retrieved 
             if(userInfo && userInfo.id && userInfo.profileImageUrl){
+              //stop subscription after essential user info has been retrieved 
               this.$retrieveUserInfo.next(false);
               this.progressBarService.startProgressBar();
               this.userInfo = userInfo;

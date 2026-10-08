@@ -9,18 +9,20 @@ $dashboard-book-width: 150px;
     justify-content: flex-start;
     height: 18vh;
     margin: 15px 0px;
+    background-image: url("../../../assets/images/jason-leung-UMncYEfO9-U-unsplash.jpg");
+    background-size: 55%;
 }
-.book-image{
-    height: $dashboard-book-height;
-    width: $dashboard-book-width;
-    background-size: cover;
-    cursor: pointer;
-}
-.dashboard-book{
-    display: inline-block;
-     max-width: $dashboard-book-width + 10px;   
-     margin-right: 10px;
-}
+// .book-image{
+//     height: $dashboard-book-height;
+//     width: $dashboard-book-width;
+//     background-size: cover;
+//     cursor: pointer;
+// }
+// .dashboard-book{
+//     display: inline-block;
+//      max-width: $dashboard-book-width + 10px;   
+//      margin-right: 10px;
+// }
 .dashboard-profile-pic{
     height: 18vh;
     width: 18vh;

@@ -28,8 +28,8 @@ export class AuthService {
 
   public async login() {
     // this.oAuthService.initCodeFlow();
-    window.location.href = `${environment.apiUrl}/auth/google/login`;
-
+    // window.location.href = `${environment.apiUrl}/auth/google/login`;
+    this.router.navigate(['/auth']);
   }
   public loginWithGoogle() {
     window.location.href = `${environment.apiUrl}/auth/google/login`;

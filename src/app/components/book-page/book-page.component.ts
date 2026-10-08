@@ -5,7 +5,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { BookService } from '../../services/books/book.service';
-import { catchError, forkJoin, map, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
@@ -36,9 +36,7 @@ import { buddiesUpdated } from '../../services/auth/store/auth.actions';
   styleUrl: './book-page.component.scss'
 })
 export class BookPageComponent implements OnInit, OnDestroy{
-    public userImageService!: ImageService;
     constructor(private router: Router, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef, private store: Store){
-      this.userImageService = imageService;
       effect(() => {
         const id = this.bookId();
         if(id){
@@ -49,6 +47,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
     
     route = inject(ActivatedRoute);
     public $isLoggedIn!: Observable<boolean>;
+    public $subscribeToUser: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
     public $buddies!: Observable<Array<BookBuddyUser> | null>;
     public $userInfo!: Observable<BookBuddyUser | null>;
     public api_type = environment.books.bookByIdApi;
@@ -97,7 +96,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.$isLoggedIn = this.store.select(selectIsLoggedIn);
     this.$buddies = this.store.select(selectBuddies);
     this.$userInfo = this.store.select(selectUserInfo);
-    this.subscriptions.push(this.$userInfo.subscribe(userInfo => {
+    this.subscriptions.push(this.$userInfo
+      .pipe(filter(res => this.$subscribeToUser.value === true))
+      .subscribe(userInfo => {
       if(userInfo && userInfo.id){
       this.progressBarService.startProgressBar();
         console.log('bookpage init db profile: ', userInfo);
@@ -110,6 +111,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.progressBarService.stopProgressBar();
           this.changeDetector.detectChanges();
         }));
+        this.$subscribeToUser.next(false);
         this.changeDetector?.detectChanges();
       }else{
         console.log('resetting page defaults on book page')
@@ -203,6 +205,11 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.databaseBook = res as DatabaseBook;
           // populate want to read column with users who want to read:
           this.usersWhoWantToRead = res.usersWantToRead;
+          // fix for profileImageUrl in api not supplying the root domain url:
+          this.usersWhoWantToRead.forEach(user => {
+            user.profileImageUrl = user.profileImageUrl ? `${environment.apiUrl}${user.profileImageUrl}` : '../../assets/images/generic_avatar.png';
+          });
+          console.log('users who want to read: ', this.usersWhoWantToRead)
           // if user is logged in, check if book is on their read list:
           if(this.userLoggedIn){
             console.log('user logged in')
@@ -521,18 +528,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.changeDetector.detectChanges();
   }
 
-
-
-  // public updateUser(){
-  //   console.log('updating user')
-  //   this.subscriptions.push(this.authService.getUserByEmail(this.userInfo.email).subscribe(res => {
-  //     if(!res) return;
-  //     console.log('res: ', res)
-  //     this.userInfo = res;
-  //     this.changeDetector.detectChanges();
-  //   }));
-  // }
-
   public notificationsGlobalRefresh(){
     this.notificationsService.$updateNotifications.next();
   }
@@ -541,6 +536,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
 
   public sendBuddyRequest(user: BookBuddyUser){
     this.checkIfLoggedIn();
+    if(!this.userLoggedIn) return;
     console.log('sending buddy request to ', user)
     const activeUserID = this.userInfo.id;
     console.log('active user id: ', activeUserID)
@@ -568,6 +564,14 @@ export class BookPageComponent implements OnInit, OnDestroy{
         }));
       }
     }));
+  }
+
+  public getProfileImageUrl(user: BookBuddyUser): string {
+    console.log('getting profile image for user: ', user)
+    if(user.profileImageUrl){
+      return `${environment.apiUrl}${user.profileImageUrl}`;
+    }
+    return user.avatarUrl;
   }
 
   public buddyRequestSent(mySentBuddyReqs: Array<BookBuddyUser>, otheruser: BookBuddyUser): boolean {

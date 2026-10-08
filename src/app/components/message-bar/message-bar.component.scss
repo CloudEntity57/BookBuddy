@@ -62,6 +62,13 @@ $opened-height: 450px;
 }
 .message-header{
     font-size: 12px;
+    display: flex;
+}
+.avatar-container{
+    width: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .message-avatar{

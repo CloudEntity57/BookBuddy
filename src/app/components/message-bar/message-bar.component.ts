@@ -46,13 +46,25 @@ export class MessageBarComponent implements OnInit, OnDestroy, AfterViewInit{
     this.conversationName = `${this.conversationMates.map(name => name.userName)}`;
     this.messageTextId = this.conversationName.split(' ').join('')
     
+    this.conversationUsers.push(this.userInfo);
     this.conversation.members.forEach(member => {
-      this.subscriptions.push(this.userService.getUserById(member.userId).subscribe(user => {
-        this.conversationUsers.push(user);
-      }));
+      if(member.userId !== this.userInfo.id){
+        this.subscriptions.push(this.userService.getUserById(member.userId).subscribe(user => {
+          this.conversationUsers.push(user);
+        }));
+      }
     });
 
   } 
+
+  public getConversationMemberProfilePicture(userId: string): string {
+    const member = this.conversationUsers.find(user => user.id === userId);
+    if(member && member.profileImageUrl){
+      return member.profileImageUrl;
+    }else{
+      return this.userImageService.getProfileImage(userId);
+    }
+  }
 
   public handleConversationUpdate(message: MessageDTO): void {
       this.conversation.messages.push(message);
