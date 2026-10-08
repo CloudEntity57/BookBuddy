@@ -1,0 +1,36 @@
+@use '../../../styles.scss' as styles;
+$booklist-book-height: 100px;
+$booklist-book-width: 75px;
+
+.booklist-book{
+    display: flex;
+    //  max-width: $booklist-book-width + 10px; 
+     width: 100%;
+     margin-right: 10px;
+     margin-bottom: 10px;
+     border-bottom: 1px solid styles.$tertiary-color;
+     padding-bottom: 10px;
+}
+.book-image{
+    display: inline-block;
+    height: $booklist-book-height;
+    width: $booklist-book-width;
+    background-size: cover;
+    cursor: pointer;
+}
+.book-info-column{
+    display: inline-block;
+    height: $booklist-book-height;
+    &-contents{
+        display: flex;
+        height: inherit;
+        flex-direction: column;
+        justify-content: space-after;
+        margin-left: 25px;
+        font-size: 15px;
+    }
+}
+.book-title{
+    color: styles.$action-color;
+    cursor: pointer;
+}
