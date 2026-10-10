@@ -15,6 +15,7 @@ import { MessageService } from '../../services/messages/message.service';
 import { Store } from '@ngrx/store';
 import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
 import { BookListComponent } from "../book-list/book-list.component";
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -48,7 +49,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public wantToReadList: Array<GoogleBookInfo> = [];
   public haveReadList: Array<GoogleBookInfo> = [];
   public currentlyReadingList: Array<GoogleBookInfo> = [];
-  public didNotFinishList: Array<GoogleBookInfo> = []
+  public didNotFinishList: Array<GoogleBookInfo> = [];
+  public apiUrl: string = environment.apiUrl;
   ngOnInit(): void {
     this.$loggedIn = this.store.select(selectIsLoggedIn);
     this.$userInfo = this.store.select(selectUserInfo);

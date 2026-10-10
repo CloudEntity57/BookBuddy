@@ -82,19 +82,10 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
       map(val => val?.filter(book => {
         const source = book.source;
         let output = false;
-        switch(source){
-          case "google":
-            output = book.volumeInfo !== undefined
-            && book.volumeInfo.authors !== undefined 
-            && book.volumeInfo?.description !== undefined
-            && book.volumeInfo?.imageLinks !== undefined;
-            break;
-          case "openLibrary":
-            output = true;
-            break;
-          default:
-            output = true;
-        }
+        output = book.volumeInfo !== undefined
+        && book.volumeInfo.authors !== undefined 
+        && book.volumeInfo?.description !== undefined
+        && book.volumeInfo?.imageLinks !== undefined;
         return output;
       } ))
     )
@@ -154,19 +145,10 @@ export class BookDropdownOptionComponent extends BaseBook implements OnInit, OnD
       map(val => val?.filter(book => {
         const source = book.source;
         let output = false;
-        switch(source){
-          case "google":
-            output = book.volumeInfo !== undefined
-            && book.volumeInfo.authors !== undefined 
-            && book.volumeInfo?.description !== undefined
-            && book.volumeInfo?.imageLinks !== undefined;
-            break;
-          case "openLibrary":
-            output = true;
-            break;
-          default:
-            output = true;
-        }
+        output = book.volumeInfo !== undefined
+        && book.volumeInfo.authors !== undefined 
+        && book.volumeInfo?.description !== undefined
+        && book.volumeInfo?.imageLinks !== undefined;
         return output;
       } ))
     )
