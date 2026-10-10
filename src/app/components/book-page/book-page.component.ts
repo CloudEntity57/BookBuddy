@@ -23,6 +23,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
 import { buddiesUpdated } from '../../services/auth/store/auth.actions';
+import { BookStarsEditComponent } from '../book-stars-edit/book-stars-edit.component';
 @Component({
   selector: 'app-book-page',
   imports: [
@@ -30,7 +31,8 @@ import { buddiesUpdated } from '../../services/auth/store/auth.actions';
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
-    CommonModule
+    CommonModule,
+    BookStarsEditComponent
   ],
   templateUrl: './book-page.component.html',
   styleUrl: './book-page.component.scss'
@@ -63,9 +65,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public userIsReading: boolean = false;
     public userDidNotFinish: boolean = false;
     public userInfo: BookBuddyUser = {} as BookBuddyUser;
+    public userRating: number = 0;
     private $userInitiated = new Subject<void>();
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
-    public databaseBook?: DatabaseBook;
+    public databaseBook: DatabaseBook = {} as DatabaseBook;
     public book!: GoogleBookInfo;
     public showFullDescription: boolean = false;
     public work!: OpenLibraryWorkInfo;
@@ -100,7 +103,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       .pipe(filter(res => this.$subscribeToUser.value === true))
       .subscribe(userInfo => {
       if(userInfo && userInfo.id){
-      this.progressBarService.startProgressBar();
+        this.progressBarService.startProgressBar();
         console.log('bookpage init db profile: ', userInfo);
         this.userInfo = userInfo;
         this.userLoggedIn = true;
@@ -111,6 +114,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.progressBarService.stopProgressBar();
           this.changeDetector.detectChanges();
         }));
+
         this.$subscribeToUser.next(false);
         this.changeDetector?.detectChanges();
       }else{
@@ -195,14 +199,20 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle)
         .pipe(catchError(err => {
           this.userWantsToRead = false;
+          this.checkForAndCreateNewBookInDatabase().then(res => {
+            console.log('checked for and found or created new book in database: ', res);
+            this.databaseBook = res.book as DatabaseBook;
+            this.checkForRating();
+          });
           this.changeDetector.detectChanges;
-          console.log('book not found - ergo user doesnt want to read', err);
           throw(err);
         })).subscribe(res => {
           console.log(`res: ${res}`)
           // save database book info
           console.log(`saving ${res.title} as this.databaseBook`)
           this.databaseBook = res as DatabaseBook;
+          // check if user rating for book exists and set starsFilled accordingly
+          this.checkForRating()
           // populate want to read column with users who want to read:
           this.usersWhoWantToRead = res.usersWantToRead;
           // fix for profileImageUrl in api not supplying the root domain url:
@@ -240,6 +250,19 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
     return of("Google Books Author Name")
   };
+
+  public checkForRating(): void{
+    if(this.userInfo.bookRatings?.some(br => br.bookId === this.databaseBook?.id)){
+      const userRatingData = this.userInfo.bookRatings.find(br => br.bookId === this.databaseBook?.id);
+      let userRating = 0;
+      if (userRatingData) {
+        userRating = userRatingData.rating;
+      }
+      console.log(`user rating for book ${this.databaseBook?.title} found: ${userRating}`)
+      this.userRating = userRating;
+      this.changeDetector.detectChanges();
+    }
+  }
 
   public checkIfBookHasUserPreferences(res: DatabaseBook){
     console.log('checking if book is on read list')
@@ -330,12 +353,17 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
 
     this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle).subscribe({
-      next: book => console.log('book found in database: ', res({ book: book, created: false })),
+      next: book => {
+        this.databaseBook = book as DatabaseBook;
+        this.checkForRating();
+        console.log('book found in database: ', res({ book: book, created: false }))
+      },
       error: err => 
         {
           if(err.status === 404){
           this.checkIfLoggedIn();
           // book doesn't exist in DB, so create a book instance based on author/title in the DB to associate all future want-to-reads with 
+          console.log('adding book to database: ', this.book.volumeInfo.authors[0], ' - ', this.book.volumeInfo.title)
           const newBook = { author: this.book.volumeInfo.authors[0], title: this.book.volumeInfo.title };
           this.subscriptions.push(this.bookService.createBookInDatabase(newBook).subscribe(
             {
@@ -377,10 +405,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
     // cancel any other user preferences for this book (want to read, currently reading, did not finish)
     this.cancelAllOtherBookStatuses();
-    this.checkForAndCreateNewBookInDatabase().then(res => {
-      console.log('checked for and found or created new book in database: ', res)
         // add user to list of users who want to read the book
-        const book = res.book as DatabaseBook;
+        const book = this.databaseBook as DatabaseBook;
         const usersWantToRead = JSON.stringify(book.usersWantToRead);
         const apiBookId = this.apiBookId;
         console.log(`res: ${book.title} - ${usersWantToRead}`)
@@ -391,7 +417,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.authService.refreshUserInfo(this.userInfo.id);
         }));
         this.progressBarService.stopProgressBar();
-    });
 
   }
 
@@ -416,10 +441,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
     // cancel any other user preferences for this book (want to read, currently reading, did not finish)
     this.cancelAllOtherBookStatuses();
-    this.checkForAndCreateNewBookInDatabase().then(res => {
-      console.log('checked for and found or created new book in database: ', res)
         // add user to list of users who want to read the book
-        const book = res.book as DatabaseBook;
+        const book = this.databaseBook as DatabaseBook;
         const usersWantToRead = JSON.stringify(book.usersWantToRead);
         const apiBookId = this.apiBookId;
         console.log(`res: ${book.title} - ${usersWantToRead}`)
@@ -430,7 +453,6 @@ export class BookPageComponent implements OnInit, OnDestroy{
           this.authService.refreshUserInfo(this.userInfo.id);
         }));
         this.progressBarService.stopProgressBar();
-    });
   }
 
 

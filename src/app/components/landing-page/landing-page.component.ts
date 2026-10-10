@@ -160,10 +160,11 @@ export class LandingPageComponent extends BaseBook implements OnInit, OnDestroy{
   }
 
   public routeSelectionToBookPage(book: NyTimesBook){
+    console.log('route Selection to book page for book: ', book)
     this.subscriptions.push(this.bookService.convertNytToGoogle(book).subscribe({
       next: googleBookResp => {
-        console.log('google nyt book: ', googleBookResp.items)
-        let googleBook = googleBookResp.items[0];
+        console.log('google nyt book: ', googleBookResp)
+        let googleBook = googleBookResp;
         googleBook.source = 'google';
         if(googleBook){
           googleBook.source = 'google';

@@ -17,6 +17,8 @@ export interface BookBuddyUser{
     firstName: string,
     lastName: string,
     userName: string,
+    bookRatings?: Array<BookRating>,
+    bookReviews?: Array<BookReview>,
     email: string,
     avatarUrl: string,
     profileImageUrl?: string,
@@ -29,6 +31,20 @@ export interface BookBuddyUser{
     sentBuddyRequests: Array<BookBuddyUser>,
     receivedBuddyRequests: Array<BookBuddyUser>,
     buddies: Array<BookBuddyUser>
+}
+
+export interface BookRating{
+    userId: string,
+    bookId: string,
+    rating: number,
+    createdAt: Date
+}
+
+export interface BookReview{
+    userId: string,
+    bookId: string,
+    reviewText: string,
+    createdAt: Date
 }
 
 export interface BookBuddyCreateUser{
