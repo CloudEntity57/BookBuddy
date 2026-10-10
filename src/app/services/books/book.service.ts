@@ -17,31 +17,19 @@ export class BookService {
   public nytBooksApiRequests = new BehaviorSubject(0);
 
 
-  public bookSearch(val: string, api_type: string, search_type: string = 'title') : Observable<Array<GoogleBookInfo | OpenLibraryBookSearchInfo>> {
-
+  public bookSearch(val: string, api_type: string, search_type: string = 'title') : Observable<Array<GoogleBookInfo>> {
+    val = encodeURIComponent(val);
+    console.log(`bookSearch called with val: ${val}, api_type: ${api_type}, search_type: ${search_type}`);
     let googleSearchString: string = '';
     if(search_type === 'title' || 'author') googleSearchString = `${environment.books.googleBookSearchApi}in${search_type}:${val}&key=${environment.googleBooksAPIKey}`;
     if(search_type === 'both') googleSearchString = `${environment.books.googleBookSearchApi}${val}&key=${environment.googleBooksAPIKey}`;
-    /* For Google Books API: **/
-    if(api_type === "google"){
-      return this.http.get<GoogleBookSearchResults>(googleSearchString).pipe(
-        map(res => res?.items?.map(a => {
-          a.source = "google"; return a;
-        }))
-      ) as Observable<Array<GoogleBookInfo>>;
-    }
-  
-
-    /* For Open Library API: **/
-    if(api_type === "openLibrary"){
-      const headers = new HttpHeaders({'user-agent':'bookbuddy/1.0 by josh foster, 713-822-8407, josh@allenb.com'})
-      return this.http.get<OpenLibraryBookResults>(`${environment.books.openLibraryBookSearchApi}${val}`,{ headers }).pipe(
-        map(res => res.docs.map(a => {a.source="openLibrary"; return a;}).slice(0,15))
-      ) as Observable<Array<OpenLibraryBookSearchInfo>>;
-    }
-
-    return of([]);
-
+    console.log(`googleSearchString: ${googleSearchString}`);
+    return this.http.get<GoogleBookSearchResults>(googleSearchString).pipe(
+      map(res => {
+        console.log('google book search results: ', res);
+        return res.items;
+      }),
+    ) as Observable<Array<GoogleBookInfo>>;
   }
 
   public getAPIBookById(id: string, api_type: string): Observable<GoogleBookInfo> {
@@ -69,7 +57,7 @@ export class BookService {
   }
 
   public getBookByAuthorAndTitle(author: string, title: string) : Observable<any>{
-    return this.http.get(`${environment.apiUrl}/Book/${author}/${title}`) as Observable<any>;
+    return this.http.get(`${environment.apiUrl}/Book/${author.toLowerCase()}/${title.toLowerCase()}`) as Observable<any>;
   }
 
   public createBookInDatabase(book: CreateBookDto): Observable<any>{
@@ -158,6 +146,13 @@ export class BookService {
     return this.http.get(`${environment.books.openLibraryWorksApi}${author_key}.json`) as Observable<OpenLibraryAuthorInfo>;
   }
 
+  public saveBookRating(userId: string, bookId: string, rating: number): Observable<any>{
+    return this.http.put(`${environment.apiUrl}/Book/rating`, {userId, bookId, rating}).pipe(catchError(err => {
+      console.log('error saving new book rating: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong saving your book rating. Please try again.'));
+    }));
+  }
+
   public getNyTimesBestsellerList(): Observable<NYTimesListResponse>{
     return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`).pipe(
     map(list => list as NYTimesListResponse),
@@ -173,11 +168,17 @@ export class BookService {
     ) as Observable<NYTimesListResponse>;
   }
 
-  public convertNytToGoogle(book: NyTimesBook): Observable<GoogleBookResponse>{
+  public convertNytToGoogle(book: NyTimesBook): Observable<GoogleBookInfo>{
+    console.log(`converting NY Times book to Google book: ${book.title} by ${book.author}`)
     // return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
     // had to drop the isbn: prefix because it wasn't returning results for any of the books on the NY Times bestseller list, even though they all have valid ISBNs.  Not sure why this is happening, but this works for now.
-    return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
-      map(list => list as GoogleBookResponse),
+    // return this.http.get<GoogleBookResponse>(`https://www.googleapis.com/books/v1/volumes?q=${book.primary_isbn13}&key=${environment.googleBooksAPIKey}`).pipe(
+    return this.bookSearch(book.author + " " + book.title, "google", "both").pipe(
+      map(items => items.find(googleBook => 
+        {
+          console.log('checking if google book matches nyt book: ', googleBook.volumeInfo.authors[0].toLocaleLowerCase(), ' === ', book.author.toLocaleLowerCase(), ' && ', googleBook.volumeInfo.title.toLocaleLowerCase(), ' === ', book.title.toLocaleLowerCase())
+          return book.author.toLocaleLowerCase().includes(googleBook.volumeInfo.authors[0].toLocaleLowerCase()) && googleBook.volumeInfo.title.toLocaleLowerCase() == book.title.toLocaleLowerCase()
+        }) as GoogleBookInfo) || {} as GoogleBookInfo,
       shareReplay(1)
     )
   }

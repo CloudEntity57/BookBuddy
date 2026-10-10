@@ -17,11 +17,12 @@ export abstract class BaseBook{
     public work!: OpenLibraryWorkInfo;
 
 
-    public goToBookPage(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
+    public goToBookPage(book: GoogleBookInfo){
+        console.log('goToBookPage called with book: ', book);
         try{
             this.router.navigate(['/book'],{
                 queryParams:{
-                    id: book.source === 'google' ? book.id : book.key
+                    id: book.id
                 }
             });        
         }catch (err){
