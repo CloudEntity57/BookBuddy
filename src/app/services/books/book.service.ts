@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, of, shareReplay, tap, throwError } from 'rxjs';
-import { BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookResponse, GoogleBookSearchResults, NyTimesBook, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
+import { AddBookRatingRequest, AddBookReviewRequest, BookReview, BookType, CreateBookDto, DatabaseBook, GoogleBookInfo, GoogleBookResponse, GoogleBookSearchResults, NyTimesBook, NYTimesListResponse, OpenLibraryAuthorInfo, OpenLibraryBookResults, OpenLibraryBookSearchInfo, OpenLibraryWorkInfo, UserBookDto } from '../../interfaces/book.interface';
 import { environment } from '../../../environments/environment';
+import { BookBuddyUser } from '../../interfaces/user.interface';
 
 
 @Injectable({
@@ -146,13 +147,6 @@ export class BookService {
     return this.http.get(`${environment.books.openLibraryWorksApi}${author_key}.json`) as Observable<OpenLibraryAuthorInfo>;
   }
 
-  public saveBookRating(userId: string, bookId: string, rating: number): Observable<any>{
-    return this.http.put(`${environment.apiUrl}/Book/rating`, {userId, bookId, rating}).pipe(catchError(err => {
-      console.log('error saving new book rating: ', err.status, '-', err.error);
-      return throwError(() => new Error('Something went wrong saving your book rating. Please try again.'));
-    }));
-  }
-
   public getNyTimesBestsellerList(): Observable<NYTimesListResponse>{
     return this.http.get(`${environment.books.nytBooksApi}/current/hardcover-fiction.json?api-key=${environment.books.nytBooksApiToken}`).pipe(
     map(list => list as NYTimesListResponse),
@@ -183,4 +177,27 @@ export class BookService {
     )
   }
 
+  public generateUserRating(googleBook: GoogleBookInfo, userInfo: BookBuddyUser): number {
+    const userRating = userInfo.bookRatings?.find(rating => rating.apiId === googleBook.id)?.rating;
+    return userRating ?? 0;
+  }
+
+  public saveBookRating({userId, bookId, apiId, rating}: AddBookRatingRequest): Observable<any>{
+    return this.http.put(`${environment.apiUrl}/Book/rating`, {userId, bookId, apiId, rating}).pipe(catchError(err => {
+      console.log('error saving new book rating: ', err.status, '-', err.error); 
+      return throwError(() => new Error('Something went wrong saving your book rating. Please try again.'));
+    }));
+  }
+  public submitBookReview({userId, bookId, apiId, review}: AddBookReviewRequest): Observable<any>{
+    return this.http.post(`${environment.apiUrl}/Book/review`, {userId, bookId, apiId, review}).pipe(catchError(err => {
+      console.log('error saving new book review: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong saving your book review. Please try again.'));
+    }));
+  }
+  public getBookReviews(databaseBookID: string): Observable<any>{
+    return this.http.get(`${environment.apiUrl}/Book/Reviews/${databaseBookID}`).pipe(catchError(err => {
+      console.log('error retrieving book reviews: ', err.status, '-', err.error);
+      return throwError(() => new Error('Something went wrong retrieving your book reviews. Please try again.'));
+    }));
+  }
 }

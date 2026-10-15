@@ -24,7 +24,7 @@ import { environment } from '../../../environments/environment';
     MatButtonModule,
     MatTabsModule,
     BookListComponent,
-],
+  ],
   standalone: true,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -114,6 +114,11 @@ export class DashboardComponent implements OnInit, OnDestroy{
         console.log('getting book by id: ', book.apiId);
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
+            if(!bookResult.bookBuddyMetaData) {
+              bookResult.bookBuddyMetaData = {};
+            }
+            bookResult.bookBuddyMetaData.databaseBookId = book.apiId;
+            bookResult.bookBuddyMetaData.userRating = this.bookService.generateUserRating(bookResult, userInfo);
             this.wantToReadList.push(bookResult);
             console.log('got book result: ', bookResult);
           },
@@ -126,6 +131,11 @@ export class DashboardComponent implements OnInit, OnDestroy{
       userInfo.haveRead.forEach(book => {
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
+            if(!bookResult.bookBuddyMetaData) {
+              bookResult.bookBuddyMetaData = {};
+            }
+            bookResult.bookBuddyMetaData.databaseBookId = book.apiId;
+            bookResult.bookBuddyMetaData.userRating = this.bookService.generateUserRating(bookResult, userInfo);
             this.haveReadList.push(bookResult);
           },
           error: error => console.log('error getting book by id: ', error.message)
@@ -136,6 +146,11 @@ export class DashboardComponent implements OnInit, OnDestroy{
       userInfo.currentlyReading.forEach(book => {
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
+            if(!bookResult.bookBuddyMetaData) {
+              bookResult.bookBuddyMetaData = {};
+            }
+            bookResult.bookBuddyMetaData.databaseBookId = book.apiId;
+            bookResult.bookBuddyMetaData.userRating = this.bookService.generateUserRating(bookResult, userInfo);
             this.currentlyReadingList.push(bookResult);
           },
           error: error => console.log('error getting book by id: ', error.message)
@@ -146,6 +161,11 @@ export class DashboardComponent implements OnInit, OnDestroy{
       userInfo.didNotFinish.forEach(book => {
         this.subscriptions.push(this.bookService.getAPIBookById(book.apiId, "google").subscribe({
           next: bookResult => {
+            if(!bookResult.bookBuddyMetaData) {
+              bookResult.bookBuddyMetaData = {};
+            }
+            bookResult.bookBuddyMetaData.databaseBookId = book.apiId;
+            bookResult.bookBuddyMetaData.userRating = this.bookService.generateUserRating(bookResult, userInfo);
             this.didNotFinishList.push(bookResult);
           },
           error: error => console.log('error getting book by id: ', error.message)

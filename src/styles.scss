@@ -56,6 +56,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   right: 0px;
 }
 
+
 // Customize the entire app. Change :root to your selector if you want to scope the styles.
 :root {
   @include mat.menu-overrides((
@@ -64,3 +65,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     divider-color: red,
   ));
 }
+
+
+mat-tab-group{
+    mat-tab-body{
+        padding-top: 10px;
+        color: $tertiary-color !important;
+    }
+}
+::ng-deep .mdc-tab__text-label{
+    color: $tertiary-color !important;
+}
+

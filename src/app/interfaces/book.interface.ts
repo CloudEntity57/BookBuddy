@@ -5,6 +5,11 @@ export interface GoogleBookInfo {
     id: string,
     kind?: string,
     selfLink?: string,
+    bookBuddyMetaData: {
+        userRating?: number;
+        userReview?: string;
+        databaseBookId?: string;
+    },
     volumeInfo: {
         imageLinks?: {
             smallThumbnail?: string;
@@ -20,6 +25,48 @@ export interface GoogleBookInfo {
         publishedDate: string;
         pageCount: number;
     }
+}
+
+export interface BookRating{
+    userId: string,
+    bookId: string,
+    apiId: string,
+    rating: number,
+    createdAt: Date
+}
+
+export interface AddBookRatingRequest{
+    userId: string,
+    bookId: string,
+    apiId: string,
+    rating: number
+}
+
+export interface DeleteBookRatingRequest{
+    userId: string,
+    bookId: string,
+    apiId: string
+}
+
+export interface BookReview{
+    userId: string,
+    bookId: string,
+    review: string,
+    user: BookBuddyUser,
+    createdAt: Date
+}
+
+export interface AddBookReviewRequest{
+    userId: string,
+    bookId: string,
+    apiId: string,
+    review: string
+}
+
+export interface DeleteBookReviewRequest{
+    userId: string,
+    bookId: string,
+    apiId: string
 }
 
 export interface GoogleBookResponse {

@@ -11,7 +11,7 @@
     <div class="row">
         <div class="col-sm-5">
             <h3>BookBuddies</h3>
-            <div *ngIf="!buddies || !buddies.length">Go make some BookBuddies! You can DM each other about books you both want to read!</div>
+            <div *ngIf="!buddies || !buddies.length">Go make some BookBuddies! You can message each other about books you both want to read!</div>
             <div class="buddy" *ngFor="let buddy of buddies">
                 <span class="username-and-icon">
                     <span class="user-avatar" [style.background-image]="`url(${buddy.profileImageUrl})`"></span>
@@ -23,7 +23,7 @@
         <div class="col sm-7">
             <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
                 <mat-tab label="Books I've Read">
-                    <app-book-list [books]="haveReadList" [emptyListMessage]="'Add some books you\'ve read!'" [ReadStatus]="readStatus.read"></app-book-list>
+                    <app-book-list [userInfo]="userInfo" [books]="haveReadList" [emptyListMessage]="'Add some books you\'ve read!'" [ReadStatus]="readStatus.read"></app-book-list>
                 </mat-tab>
                 <mat-tab label="Reading">
                     <app-book-list [books]="currentlyReadingList" [emptyListMessage]="'Add some books you\'re currently reading!'" [ReadStatus]="readStatus.reading"></app-book-list>

@@ -82,6 +82,17 @@ mat-divider{
     // max-height: 400px;
     // overflow-y: scroll;
 }
+.book-review-container{
+    width: 100vw;
+    height: 100vh;
+    background-color: inherit;
+    color: inherit;
+}
+.book-review-area{
+    width: 800px;
+    background-color: styles.$secondary-color;
+    color: inherit;
+}
 .see-more{
     cursor: pointer;
     padding-left: 5px;
