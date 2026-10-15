@@ -1,4 +1,9 @@
-<div class="buffer"></div>
+<mat-drawer-container class="book-review-container">
+    <mat-drawer class="book-review-area" #drawer mode="over">
+        <h4 style="margin-left: 25px;">Write a review for {{title}}:</h4>
+        <app-review-form userId="{{userInfo.id}}" bookId="{{databaseBook.id}}" apiId="{{apiBookId}}" type={{reviewType}} existingReview={{userReview}} (reviewSubmitted)="onReviewSubmitted($event)"></app-review-form>
+    </mat-drawer>
+    <div class="buffer"></div>
 <div class="container">
     <div class="row">
         <div class="book-columns row">
@@ -7,24 +12,39 @@
                 <h3>{{authorEnglish()}} {{'('+ (date | date:'yyyy')+')'}}</h3>
                 <!-- <img class="book-image" src={{smallThumbnail}}> -->
                 <img class="book-image" src={{thumbnail}}>
-                <app-book-stars-edit *ngIf="userLoggedIn" [bookId]="databaseBook.id" [userId]="userInfo.id" [savedRating]="userRating"></app-book-stars-edit>
+                <app-book-stars-edit *ngIf="userLoggedIn" [databaseBookId]="databaseBook.id" [googleBookId]="book.id" [userId]="userInfo.id" [savedRating]="userRating"></app-book-stars-edit>
             </div>
-            <ng-container *ngIf="description && description.length > 900">
-                <div *ngIf="!showFullDescription" class="truncated-description-container col-sm-8">
-                    <span class="book-description" [innerHTML]="truncated_description">
-                    </span>
-                    <span class="see-more"><b (click)="toggleFullDescription()">Show More..</b></span>
-                </div>
-                <div *ngIf="showFullDescription" class="truncated-description-container col-sm-8">
-                    <span class="book-description" [innerHTML]="description">
-                    </span>
-                    <span class="see-more"><b (click)="toggleFullDescription()">Show less</b></span>
-                </div>
+            <div class="mat-columns-container col-sm-8">
+                <mat-tab-group (selectedTabChange)="handleTabChange($event)" mat-stretch-tabs="false" mat-align-tabs="start">
+                    <mat-tab label="Description">
+                        <ng-container *ngIf="description && description.length > 900">
+                            <div *ngIf="!showFullDescription" class="truncated-description-container">
+                                <span class="book-description" [innerHTML]="truncated_description">
+                                </span>
+                                <span class="see-more"><b (click)="toggleFullDescription()">Show More..</b></span>
+                            </div>
+                            <div *ngIf="showFullDescription" class="truncated-description-container">
+                                <span class="book-description" [innerHTML]="description">
+                                </span>
+                                <span class="see-more"><b (click)="toggleFullDescription()">Show less</b></span>
+                            </div>
 
-            </ng-container>
-            <ng-container *ngIf="description && description.length <= 900">
-                <div class="book-description col-sm-8" [innerHTML]="description || 'no description available'"></div>
-            </ng-container>
+                        </ng-container>
+                        <ng-container *ngIf="description && description.length <= 900">
+                            <div class="book-description" [innerHTML]="description || 'no description available'"></div>
+                        </ng-container>
+                    </mat-tab>
+                    <mat-tab label="Reviews">
+                        <ng-container *ngIf="bookReviews && bookReviews.length">
+                            <div *ngFor="let review of bookReviews">
+                                <div style=`background-image: ${review.user.profileImage}`></div>
+                                <div>{{review.createdAt}}</div>
+                                {{review.review}}
+                            </div>
+                        </ng-container>
+                    </mat-tab>
+                </mat-tab-group>
+            </div>
         </div>
             <div class="action-read-status col-sm-6">
                 <div class="buttons">
@@ -43,7 +63,8 @@
                         <div class="read-status">You Have Read This</div>
                         <button (click)="toggleHaveRead(true)" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
                     </ng-container>
-                    <button *ngIf="userHasRead" (click)="writeReview(book)" class="action-button read-button" mat-raised-button>Write review</button>
+                    <button *ngIf="userHasRead && !userReview.length" (click)="drawer.toggle()" class="action-button read-button" mat-raised-button>Write review</button>
+                    <button *ngIf="userHasRead && userReview && userReview.length" (click)="editReview()" class="action-button read-button" mat-raised-button>Edit review</button>
                 </div>
 
                 <ul class="basic-instructions">
@@ -96,3 +117,5 @@
             </div>
     </div>
 </div>
+
+</mat-drawer-container>

@@ -12,7 +12,7 @@ export abstract class BaseBook{
 
     /** Multiple API type configuration */
 
-    public bookList: Array<OpenLibraryBookSearchInfo | GoogleBookInfo> = [];
+    public bookList: Array<GoogleBookInfo> = [];
     public book!: GoogleBookInfo;
     public work!: OpenLibraryWorkInfo;
 
@@ -31,22 +31,15 @@ export abstract class BaseBook{
 
     } 
 
-    public bookPhotoUrl(book: OpenLibraryBookSearchInfo | GoogleBookInfo){
+    public bookPhotoUrl(book: GoogleBookInfo){
 
         /** OPEN LIBRARY  */
             // return `url(${book.volumeInfo?.imageLinks?.smallThumbnail}), url('/assets/images/generic_cover.png')`;
             let urlBase;
             let bookPhotoUrl;
-        if(book.source === 'openLibrary'){
-            urlBase = book.cover_i;
-            if(!urlBase) return "url('assets/images/generic_cover.png')";
-            bookPhotoUrl = `url(${environment.books.openLibraryCoverApi+urlBase}-S.jpg)`;
-        }
-        if(book.source === 'google'){
             urlBase = book.volumeInfo?.imageLinks?.smallThumbnail;
             if(!urlBase) return "url('assets/images/generic_cover.png')";
             bookPhotoUrl = `url(${urlBase})`;
-        }
 
         // console.log('photo url: ', bookPhotoUrl);
         return bookPhotoUrl;

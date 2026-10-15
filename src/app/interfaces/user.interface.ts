@@ -1,4 +1,4 @@
-import { DatabaseBook } from "./book.interface"
+import { BookRating, BookReview, DatabaseBook } from "./book.interface"
 
 export interface GoogleUser{
     given_name: string,
@@ -22,6 +22,7 @@ export interface BookBuddyUser{
     email: string,
     avatarUrl: string,
     profileImageUrl?: string,
+    profileImage?: string,
     createdAt?: string,
     lastLoginAt?: string,
     wantToRead?: Array<DatabaseBook>,
@@ -33,19 +34,6 @@ export interface BookBuddyUser{
     buddies: Array<BookBuddyUser>
 }
 
-export interface BookRating{
-    userId: string,
-    bookId: string,
-    rating: number,
-    createdAt: Date
-}
-
-export interface BookReview{
-    userId: string,
-    bookId: string,
-    reviewText: string,
-    createdAt: Date
-}
 
 export interface BookBuddyCreateUser{
     userName: string,

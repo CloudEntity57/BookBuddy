@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, effect, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook, CheckForAndCreateBookResponse } from '../../interfaces/book.interface';
+import { GoogleBookInfo, OpenLibraryWorkInfo, OpenLibraryBookSearchInfo, DatabaseBook, CheckForAndCreateBookResponse, BookReview } from '../../interfaces/book.interface';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
@@ -9,7 +9,7 @@ import { BehaviorSubject, catchError, filter, forkJoin, map, Observable, of, Sub
 import { wantToReadAIAgents } from '../../data/want-to-read-ai-agents';
 import { AuthService } from '../../services/auth/auth.service';
 import { BookBuddyUser } from '../../interfaces/user.interface';
-import {MatDividerModule} from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
 import { BuddyService } from '../../services/buddies/buddy.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BuddyRequestDialogComponent } from '../../shared/components/buddy-request-dialog/buddy-request-dialog.component';
@@ -24,6 +24,9 @@ import { Store } from '@ngrx/store';
 import { selectBuddies, selectIsLoggedIn, selectUserInfo } from '../../services/auth/store/auth.selectors';
 import { buddiesUpdated } from '../../services/auth/store/auth.actions';
 import { BookStarsEditComponent } from '../book-stars-edit/book-stars-edit.component';
+import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
+import { ReviewFormComponent } from '../review-form/review-form.component';
+import { MatTabsModule } from '@angular/material/tabs';
 @Component({
   selector: 'app-book-page',
   imports: [
@@ -31,8 +34,11 @@ import { BookStarsEditComponent } from '../book-stars-edit/book-stars-edit.compo
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
+    MatSidenavModule,
     CommonModule,
-    BookStarsEditComponent
+    BookStarsEditComponent,
+    ReviewFormComponent,
+    MatTabsModule
   ],
   templateUrl: './book-page.component.html',
   styleUrl: './book-page.component.scss'
@@ -40,13 +46,14 @@ import { BookStarsEditComponent } from '../book-stars-edit/book-stars-edit.compo
 export class BookPageComponent implements OnInit, OnDestroy{
     constructor(private router: Router, private bookService: BookService, private authService: AuthService, private buddyService: BuddyService, private progressBarService: ProgressBarService, private notificationsService: NotificationService, private messageService: MessageService, private imageService: ImageService, private changeDetector: ChangeDetectorRef, private store: Store){
       effect(() => {
-        const id = this.bookId();
+        const id = this.googleBookId();
         if(id){
+          console.log('effect triggered for bookId: ', id)
           this.processBookData();
         }
       })
     }
-    
+    @ViewChild('drawer') drawer!: MatDrawer;
     route = inject(ActivatedRoute);
     public $isLoggedIn!: Observable<boolean>;
     public $subscribeToUser: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
@@ -66,6 +73,8 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public userDidNotFinish: boolean = false;
     public userInfo: BookBuddyUser = {} as BookBuddyUser;
     public userRating: number = 0;
+    public userReview: string = '';
+    public reviewType: string = 'create'; // default to 'create', can be set to 'edit' for editing an existing review
     private $userInitiated = new Subject<void>();
     public bookList: Array<OpenLibraryBookSearchInfo> = [];
     public databaseBook: DatabaseBook = {} as DatabaseBook;
@@ -73,7 +82,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
     public showFullDescription: boolean = false;
     public work!: OpenLibraryWorkInfo;
     public apiBookId: string = '';
-    public bookId = toSignal(this.route.queryParams.pipe(
+    public reviewsLoaded: boolean = false;
+    public bookReviews: Array<BookReview> = [];
+    public googleBookId = toSignal(this.route.queryParams.pipe(
       map(params => params['id'])
     ),
     {initialValue: ''});
@@ -102,9 +113,11 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.subscriptions.push(this.$userInfo
       .pipe(filter(res => this.$subscribeToUser.value === true))
       .subscribe(userInfo => {
+      console.log('bookpage init db profile: ', userInfo);
       if(userInfo && userInfo.id){
+        // process book data in case it was reset
+        this.processBookData();
         this.progressBarService.startProgressBar();
-        console.log('bookpage init db profile: ', userInfo);
         this.userInfo = userInfo;
         this.userLoggedIn = true;
         // retrieve buddy list
@@ -182,9 +195,10 @@ export class BookPageComponent implements OnInit, OnDestroy{
     this.changeDetector?.detectChanges();
     // console.log('NEW PARAMS - ', params)
     // const bookId = params['id'];
-    this.apiBookId = this.bookId() as string;
+    this.apiBookId = this.googleBookId() as string;
     console.log('BOOK ID = ',this.apiBookId)
     this.subscriptions.push(this.bookService.getAPIBookById(this.apiBookId, environment.books.bookByIdApi).subscribe(book => {
+      console.log('processBookData - book retrieved: ', book)
       if(this.api_type === "google" && book.source === "google") this.book = book;
       if(this.api_type === "openLibrary"){
         this.getAuthors(this.work);
@@ -198,21 +212,25 @@ export class BookPageComponent implements OnInit, OnDestroy{
       console.log('looking for book - ', bookTitle, ' by ', bookAuthor);
       this.subscriptions.push(this.bookService.getBookByAuthorAndTitle(bookAuthor,bookTitle)
         .pipe(catchError(err => {
+          console.log('processbookdata error looking for book: ', err)
           this.userWantsToRead = false;
           this.checkForAndCreateNewBookInDatabase().then(res => {
             console.log('checked for and found or created new book in database: ', res);
             this.databaseBook = res.book as DatabaseBook;
             this.checkForRating();
+            this.checkForReview();
           });
           this.changeDetector.detectChanges;
           throw(err);
         })).subscribe(res => {
-          console.log(`res: ${res}`)
+          console.log(`processbookdata res: ${res}`)
           // save database book info
-          console.log(`saving ${res.title} as this.databaseBook`)
+          console.log(`setting ${res.title} as this.databaseBook`)
           this.databaseBook = res as DatabaseBook;
           // check if user rating for book exists and set starsFilled accordingly
-          this.checkForRating()
+          this.checkForRating();
+          // check if user review for book exists and set userReview accordingly
+          this.checkForReview();
           // populate want to read column with users who want to read:
           this.usersWhoWantToRead = res.usersWantToRead;
           // fix for profileImageUrl in api not supplying the root domain url:
@@ -252,7 +270,9 @@ export class BookPageComponent implements OnInit, OnDestroy{
   };
 
   public checkForRating(): void{
+    console.log(`userInfo when checking for rating: `, this.userInfo)
     if(this.userInfo.bookRatings?.some(br => br.bookId === this.databaseBook?.id)){
+      console.log('checking for user rating for book ', this.databaseBook?.title)
       const userRatingData = this.userInfo.bookRatings.find(br => br.bookId === this.databaseBook?.id);
       let userRating = 0;
       if (userRatingData) {
@@ -262,6 +282,29 @@ export class BookPageComponent implements OnInit, OnDestroy{
       this.userRating = userRating;
       this.changeDetector.detectChanges();
     }
+  }
+
+  public checkForReview(): void{
+    console.log(`userInfo when checking for review: `, this.userInfo, 'databaseBook: ', this.databaseBook)
+    if(this.userInfo.bookReviews && this.userInfo.bookReviews.some(br => br.bookId === this.databaseBook?.id)){
+      console.log('checking for user review for book ', this.databaseBook?.title)
+      const userReviewData = this.userInfo.bookReviews.find(br => br.bookId === this.databaseBook?.id);
+      console.log('user review data found: ', userReviewData)
+      if (userReviewData && userReviewData.review) {
+        this.reviewType = 'edit';
+        console.log(`user review for book ${this.databaseBook?.title} found: ${userReviewData.review}`)
+        this.userReview = userReviewData.review;
+        this.changeDetector.detectChanges();
+      }
+      this.changeDetector.detectChanges();
+    }
+  }
+
+  public editReview(): void{
+    console.log('editing review for book ', this.databaseBook?.title, ' user review: ', this.userReview)
+    this.reviewType = 'edit';
+    this.changeDetector.detectChanges();
+    this.drawer.toggle();
   }
 
   public checkIfBookHasUserPreferences(res: DatabaseBook){
@@ -356,6 +399,7 @@ export class BookPageComponent implements OnInit, OnDestroy{
       next: book => {
         this.databaseBook = book as DatabaseBook;
         this.checkForRating();
+        this.checkForReview();
         console.log('book found in database: ', res({ book: book, created: false }))
       },
       error: err => 
@@ -405,19 +449,18 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }
     // cancel any other user preferences for this book (want to read, currently reading, did not finish)
     this.cancelAllOtherBookStatuses();
-        // add user to list of users who want to read the book
-        const book = this.databaseBook as DatabaseBook;
-        const usersWantToRead = JSON.stringify(book.usersWantToRead);
-        const apiBookId = this.apiBookId;
-        console.log(`res: ${book.title} - ${usersWantToRead}`)
-        this.checkIfLoggedIn();
-        console.log('invoking updateBookHaveRead')
-        this.subscriptions.push(this.bookService.updateBookHaveRead(this.userInfo.id, book, apiBookId).subscribe(created => {
-          this.userHasRead = true;
-          this.authService.refreshUserInfo(this.userInfo.id);
-        }));
-        this.progressBarService.stopProgressBar();
-
+    // add user to list of users who want to read the book
+    const book = this.databaseBook as DatabaseBook;
+    const usersWantToRead = JSON.stringify(book.usersWantToRead);
+    const apiBookId = this.apiBookId;
+    console.log(`res: ${book.title} - ${usersWantToRead}`)
+    this.checkIfLoggedIn();
+    console.log('invoking updateBookHaveRead')
+    this.subscriptions.push(this.bookService.updateBookHaveRead(this.userInfo.id, book, apiBookId).subscribe(created => {
+      this.userHasRead = true;
+      this.authService.refreshUserInfo(this.userInfo.id);
+    }));
+    this.progressBarService.stopProgressBar();
   }
 
   public toggleWantToRead(cancel?: boolean): void {
@@ -667,8 +710,35 @@ export class BookPageComponent implements OnInit, OnDestroy{
     }));
   }
 
-  public writeReview(book: GoogleBookInfo){
-    
+  public onReviewSubmitted(success: boolean){
+    if(success){
+      console.log('Review submitted successfully');
+      this.drawer.close();
+    }
+    else{
+      this.drawer.close();
+    }
+  }
+
+  public handleTabChange(event: any): void {
+    console.log('Tab changed to index: ', event.index);
+    // You can add logic here to handle tab changes, such as loading data for the selected tab.
+    if(event.index === 1 && !this.reviewsLoaded){
+      // call api for book reviews
+      this.loadReviews(this.databaseBook.id);
+    }
+  }
+
+  public loadReviews(bookId: string): void{
+    this.subscriptions.push(this.bookService.getBookReviews(bookId).subscribe({
+      next: reviews => {
+        if(reviews == null) return;
+        console.log(`retrieved reviews from the database: ${reviews}`)
+        this.bookReviews = reviews;
+        this.reviewsLoaded = true;
+        this.changeDetector.detectChanges();
+      }
+    }));
   }
 
 }

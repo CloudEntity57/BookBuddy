@@ -1,0 +1,19 @@
+<div class="review-form-container">
+    <div class="form-control-container">
+        <mat-form-field [formGroup]="reviewForm" class="review-form-field">
+            <mat-label>Write your review here</mat-label>
+            <textarea matInput formControlName="review" rows="10"></textarea>
+        </mat-form-field>
+    </div>
+    <div>
+    <div class="form-control-container">
+        <ng-container *ngIf="type === 'create'">
+            <button class="submitButton" mat-raised-button color="primary" (click)="submitReview()" [disabled]="!reviewForm.valid">Submit Review</button>
+        </ng-container>
+        <ng-container *ngIf="type === 'edit'">
+            <button class="submitButton" mat-raised-button color="primary" (click)="submitReview()" [disabled]="!reviewForm.valid">Update Review</button>
+        </ng-container>
+        <button class="cancel-button" (click)="cancel()" class="secondary-action-button read-button" mat-raised-button>Cancel</button>
+    </div>
+    </div>
+</div>

@@ -20,7 +20,7 @@ import { ProgressBarService } from '../../services/progress-bar.service';
     ReactiveFormsModule,
     RouterModule,
     MatIconModule
-],
+  ],
   templateUrl: './create-account.component.html',
   styleUrl: './create-account.component.scss'
 })

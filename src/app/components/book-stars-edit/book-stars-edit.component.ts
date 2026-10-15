@@ -2,6 +2,7 @@ import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ProgressBarService } from '../../services/progress-bar.service';
 import { BookService } from '../../services/books/book.service';
+import { AddBookRatingRequest } from '../../interfaces/book.interface';
 
 @Component({
   selector: 'app-book-stars-edit',
@@ -10,7 +11,8 @@ import { BookService } from '../../services/books/book.service';
   styleUrl: './book-stars-edit.component.scss'
 })
 export class BookStarsEditComponent implements OnChanges {
-  @Input() bookId: string = '';
+  @Input() databaseBookId: string = '';
+  @Input() googleBookId: string = '';
   @Input() userId: string = '';
   @Input() savedRating: number = 0; // This will hold the user's saved rating
   public starsFilled: number = 0; // This will hold the current number of filled stars
@@ -37,7 +39,14 @@ export class BookStarsEditComponent implements OnChanges {
     this.currentlyEditing = false;
     this.starsFilled = starIndex;
     this.userRating = starIndex;
-    this.bookService.saveBookRating(this.userId, this.bookId, starIndex).subscribe({
+    const bookRatingRequest: AddBookRatingRequest = {
+      userId: this.userId,
+      bookId: this.databaseBookId,
+      apiId: this.googleBookId,
+      rating: starIndex
+    };
+    console.log('Saving rating: ', bookRatingRequest);
+    this.bookService.saveBookRating(bookRatingRequest).subscribe({
       next: (response) => {
         console.log(`Saved rating: ${starIndex} stars`);
         this.progressBarService.stopProgressBar();
