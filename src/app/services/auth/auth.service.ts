@@ -79,34 +79,35 @@ export class AuthService {
 
 
   public initUser(authToken: string){
-      console.log('Auth token received: ', authToken);
-      sessionStorage.setItem('authToken', authToken);
-      // retrieve user info from the backend using the auth token and store it in session storage
-      this.getCurrentUserInfo().subscribe({
-        next: userInfo => {
-          console.log('Current User info retrieved: ', userInfo);
-          this.progressBarService.stopProgressBar();
-          sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
-          this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
-          this.store.dispatch(loginSuccess({isLoggedIn: true}));
-          // Until
-          if(!userInfo.profileImageUrl){
-            console.log('No profile image found for user, caching Google profile image...');
-            this.cacheGoogleProfileImage(userInfo.id, userInfo.avatarUrl || '').then(resp => {
-              console.log('successfully cached profile image: ', resp)
-              this.$retrieveUserInfo.next(true);
-              this.refreshUserInfo(userInfo.id);
-            });
-          };
-          // Redirect to the dashboard or any other page
-          this.router.navigate(['/dashboard']);
-          // setTimeout(()=> window.location.href = '/dashboard', 5000);
-        },
-        error: err => {
-          console.error('Error retrieving user info: ', err);
-          // Handle error, maybe redirect to an error page or show a message
-        }
-      });
+    console.log('Auth token received: ', authToken);
+    sessionStorage.setItem('authToken', authToken);
+    // retrieve user info from the backend using the auth token and store it in session storage
+    this.getCurrentUserInfo().subscribe({
+      next: userInfo => {
+        console.log('Current User info retrieved: ', userInfo);
+        this.progressBarService.stopProgressBar();
+        sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+        this.store.dispatch(userInfoUpdated({userInfo: userInfo}));
+        this.store.dispatch(loginSuccess({isLoggedIn: true}));
+        // 
+        // Until
+        if(!userInfo.profileImageUrl){
+          console.log('No profile image found for user, caching Google profile image...');
+          this.cacheGoogleProfileImage(userInfo.id, userInfo.avatarUrl || '').then(resp => {
+            console.log('successfully cached profile image: ', resp)
+            this.$retrieveUserInfo.next(true);
+            this.refreshUserInfo(userInfo.id);
+          });
+        };
+        // Redirect to the dashboard or any other page
+        this.router.navigate(['/dashboard']);
+        // setTimeout(()=> window.location.href = '/dashboard', 5000);
+      },
+      error: err => {
+        console.error('Error retrieving user info: ', err);
+        // Handle error, maybe redirect to an error page or show a message
+      }
+    });
   }
   // public async initUserInfo(){
   //    await this.oAuthService.loadUserProfile().then((user) => {
